@@ -45,9 +45,9 @@ header{position:sticky;top:0;z-index:200;background:rgba(5,10,20,.92);backdrop-f
 .hg{font-size:28px;}
 .ht{font-family:“Cinzel Decorative”,serif;font-size:clamp(9px,1.8vw,15px);color:var(–gold);letter-spacing:1px;}
 .hright{display:flex;align-items:center;gap:10px;}
-#srch{background:rgba(255,255,255,.05);border:1px solid var(–gb);border-radius:30px;padding:8px 18px;color:var(–text);font-family:“Rajdhani”,sans-serif;font-size:14px;width:200px;outline:none;transition:all .3s;}
+#srch{background:rgba(255,255,255,.05);border:1px solid var(–gb);border-radius:30px;padding:8px 18px;color:#E8F0FF !important;font-family:“Rajdhani”,sans-serif;font-size:14px;width:200px;outline:none;transition:all .3s;-webkit-text-fill-color:#E8F0FF;}
 #srch:focus{border-color:var(–gold);width:250px;}
-#srch::placeholder{color:var(–text2);}
+#srch::placeholder{color:rgba(138,160,192,.7);-webkit-text-fill-color:rgba(138,160,192,.7);}
 .lout{background:transparent;border:1px solid rgba(255,215,0,.3);border-radius:6px;padding:7px 14px;color:var(–gold);font-family:“Orbitron”,sans-serif;font-size:8px;letter-spacing:2px;cursor:pointer;transition:all .3s;}
 .lout:hover{background:rgba(255,215,0,.1);}
 
@@ -308,6 +308,8 @@ footer span{color:var(–gold);}
 <script src="anthems.js"></script>
 
 <script>
+// Safety check — if anthems.js failed to load, define empty object
+if(typeof ANTHEMS==="undefined"){window.ANTHEMS={};}
 const CFG={pw:"ThapaGlobe2025",uk:"SdrFzB1r42pUV6vLDhijzzdAFhjJhxvoMateZ9aT0og"};
 
 // ─── STARFIELD ───────────────────────────────────────────────
@@ -687,23 +689,29 @@ async function openC(cca2){
 }
 
 // ─── ANTHEM ──────────────────────────────────────────────────
-// Key: NO crossorigin attribute — that blocks iOS Safari
-// Audio src hotlink works directly on all browsers inc iPad
 function setupAnthem(c){
   const aud=document.getElementById("caud");
   aud.pause();
   aud.removeAttribute("crossorigin");
   aud.removeAttribute("src");
+  aud.removeAttribute("data-retried");
   aud.load();
 
-  const a=(typeof ANTHEMS!=="undefined")?ANTHEMS[c.cca2]:null;
+  // Check if anthems.js loaded correctly
+  const anthemLoaded=typeof ANTHEMS!=="undefined"&&Object.keys(ANTHEMS).length>0;
+  const a=anthemLoaded?ANTHEMS[c.cca2]:null;
+
   document.getElementById("aname").textContent=a?a.name:(c.name+" — National Anthem");
   document.getElementById("pbtn").textContent="▶";
   document.getElementById("apr").style.width="0%";
   document.getElementById("atm").textContent="0:00 / 0:00";
 
+  if(!anthemLoaded){
+    document.getElementById("anote").textContent="⚠️ anthems.js not loaded — upload it to GitHub!";
+    return;
+  }
   if(!a){
-    document.getElementById("anote").textContent="No anthem available for this country";
+    document.getElementById("anote").textContent="No anthem file for "+c.name;
     return;
   }
 
@@ -714,14 +722,13 @@ function setupAnthem(c){
     document.getElementById("anote").textContent="🎵 "+a.name+" — ready ✓";
   };
   aud.onerror=function(){
-    // Retry once with cache-bust — helps on iPad
     const retried=aud.getAttribute("data-retried");
     if(!retried){
       aud.setAttribute("data-retried","1");
       aud.src=a.url+"?t="+Date.now();
-      document.getElementById("anote").textContent="🔄 Retrying... tap ▶";
+      document.getElementById("anote").textContent="🔄 Retrying... tap ▶ again";
     } else {
-      document.getElementById("anote").textContent="⚠️ Blocked by browser — try Safari or Chrome";
+      document.getElementById("anote").textContent="⚠️ Audio blocked — try tapping ▶ anyway";
     }
   };
   aud.ontimeupdate=function(){
