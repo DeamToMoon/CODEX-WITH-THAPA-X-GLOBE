@@ -929,12 +929,27 @@ function togglePlay(){
     document.getElementById("anote").textContent="⚠️ No anthem loaded";
     return;
   }
-  if(a.paused){
-    a.play().catch(e=>{
-      document.getElementById("anote").textContent="⚠️ Browser blocked autoplay — click again";
-    });
-  } else {
+  if(!a.paused){
     a.pause();
+    return;
+  }
+  // Direct play — user already tapped so iOS allows it
+  const p=a.play();
+  if(p!==undefined){
+    p.then(()=>{
+      document.getElementById("anote").textContent="🎵 Now playing...";
+    }).catch(()=>{
+      // Last resort: re-assign src and play
+      const url=a.src;
+      a.src="";
+      a.src=url;
+      a.load();
+      setTimeout(()=>{
+        a.play().catch(()=>{
+          document.getElementById("anote").textContent="🎵 Tap ▶ once more";
+        });
+      },300);
+    });
   }
 }
 function seekA(e){
