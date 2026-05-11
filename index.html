@@ -1012,63 +1012,108 @@ async function playVideo(c,canvas,ctx){
       const place=pl[idx]||{n:c.name,e:"📍"};
 
       if(item&&item.img){
+        // Draw photo to FILL canvas completely — no cropping, letterbox if needed
         const iw=item.img.width,ih=item.img.height;
-        const scale=Math.max(1080/iw,1920/ih);
+        const scaleF=Math.min(1080/iw,1920/ih); // fit entire photo
+        const scaleC=Math.max(1080/iw,1920/ih); // cover/fill
+        // Use cover but with gentler zoom so more of photo shows
+        const scale=scaleC*(1+pt*.03);
         const dw=iw*scale,dh=ih*scale;
-        const zoom=1+pt*.055;
-        ctx.drawImage(item.img,(1080-dw*zoom)/2,(1920-dh*zoom)/2,dw*zoom,dh*zoom);
-        // Top gradient
-        const tg=ctx.createLinearGradient(0,0,0,320);
-        tg.addColorStop(0,"rgba(0,0,0,.78)");tg.addColorStop(1,"rgba(0,0,0,0)");
-        ctx.fillStyle=tg;ctx.fillRect(0,0,1080,320);
-        // Vignette
-        const vg=ctx.createRadialGradient(540,960,180,540,960,1000);
-        vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.55)");
-        ctx.fillStyle=vg;ctx.fillRect(0,0,1080,1920);
-        // Bottom gradient
-        const btg=ctx.createLinearGradient(0,1920-660,0,1920);
-        btg.addColorStop(0,"rgba(0,0,0,0)");btg.addColorStop(1,"rgba(0,0,0,.95)");
+        ctx.drawImage(item.img,(1080-dw)/2,(1920-dh)/2,dw,dh);
+        // Top dark gradient
+        const tg=ctx.createLinearGradient(0,0,0,350);
+        tg.addColorStop(0,"rgba(0,0,0,.82)");tg.addColorStop(1,"rgba(0,0,0,0)");
+        ctx.fillStyle=tg;ctx.fillRect(0,0,1080,350);
+        // Bottom dark gradient — taller so text is very readable
+        const btg=ctx.createLinearGradient(0,1920-780,0,1920);
+        btg.addColorStop(0,"rgba(0,0,0,0)");btg.addColorStop(.4,"rgba(0,0,0,.7)");btg.addColorStop(1,"rgba(0,0,0,.97)");
         ctx.fillStyle=btg;ctx.fillRect(0,0,1080,1920);
       } else {
         bg("#061428","#0A2030");stars();
       }
 
-      // BIG countdown number
+      // BIG countdown number — top area
       const ns=pt<.12?ease(pt/.12):(pt>.82?ease((1-pt)/.18):1);
       ctx.globalAlpha=ns;
-      ctx.beginPath();ctx.arc(540,330,168,0,Math.PI*2);
-      const rg=ctx.createRadialGradient(540,330,70,540,330,168);
+      ctx.beginPath();ctx.arc(540,310,155,0,Math.PI*2);
+      const rg=ctx.createRadialGradient(540,310,60,540,310,155);
       rg.addColorStop(0,"rgba(255,215,0,0)");
-      rg.addColorStop(.6,"rgba(255,215,0,.15)");
-      rg.addColorStop(1,"rgba(255,215,0,.52)");
+      rg.addColorStop(.6,"rgba(255,215,0,.18)");
+      rg.addColorStop(1,"rgba(255,215,0,.55)");
       ctx.fillStyle=rg;ctx.fill();
-      ctx.strokeStyle="rgba(255,215,0,.78)";ctx.lineWidth=5;ctx.stroke();
-      ctx.beginPath();ctx.arc(540,330,128,0,Math.PI*2);
-      ctx.fillStyle="rgba(0,0,0,.65)";ctx.fill();
-      ctx.font="bold 210px Orbitron,monospace";ctx.fillStyle=GOLD;
-      ctx.shadowColor=GOLD;ctx.shadowBlur=75;
-      ctx.fillText(num,540,420);ctx.shadowBlur=0;
+      ctx.strokeStyle="rgba(255,215,0,.8)";ctx.lineWidth=5;ctx.stroke();
+      ctx.beginPath();ctx.arc(540,310,118,0,Math.PI*2);
+      ctx.fillStyle="rgba(0,0,0,.7)";ctx.fill();
+      ctx.font="bold 195px Orbitron,monospace";ctx.fillStyle=GOLD;
+      ctx.shadowColor=GOLD;ctx.shadowBlur=70;
+      ctx.fillText(num,540,395);ctx.shadowBlur=0;
       ctx.globalAlpha=1;
 
-      ctx.font="bold 30px Orbitron,monospace";ctx.fillStyle=ACC;
-      ctx.fillText("TOP PLACES IN "+c.name.toUpperCase(),540,528);
+      // "TOP PLACES IN NEPAL" header
+      ctx.font="bold 28px Orbitron,monospace";ctx.fillStyle=ACC;
+      ctx.fillText("TOP PLACES IN "+c.name.toUpperCase(),540,505);
 
-      // Place name
+      // BOTTOM INFO PANEL — place name + description
       const na=pt>.1?ease(Math.min((pt-.1)*5,1)):0;
       ctx.globalAlpha=na;
-      ctx.fillStyle="rgba(255,215,0,.12)";rr(180,1920-570,720,62,12);ctx.fill();
-      ctx.strokeStyle="rgba(255,215,0,.42)";ctx.lineWidth=1;rr(180,1920-570,720,62,12);ctx.stroke();
-      ctx.font="bold 24px Orbitron,monospace";ctx.fillStyle=GOLD;
-      ctx.fillText("PLACE  #"+num,540,1920-529);
-      ctx.font="bold 78px Cinzel,Georgia,serif";ctx.fillStyle=WHITE;
-      ctx.shadowColor="rgba(0,0,0,.98)";ctx.shadowBlur=30;
-      wt((place.e||"")+"  "+(place.n||c.name),540-450,1920-445,900,90);
-      ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.font="28px Orbitron,monospace";ctx.fillStyle=GOLD;
-      ctx.fillText("📍 "+c.name.toUpperCase()+" · "+c.region.toUpperCase(),540,1920-115);
-      ctx.font="bold 38px Cinzel,Georgia,serif";ctx.fillStyle=WHITE;
-      ctx.shadowColor="rgba(0,0,0,.8)";ctx.shadowBlur=14;
-      ctx.fillText("CodeX with Thapa X Globe",540,1920-60);ctx.shadowBlur=0;
+
+      // "PLACE #N" pill
+      ctx.fillStyle="rgba(255,215,0,.15)";
+      rr(370,1920-620,340,52,26);ctx.fill();
+      ctx.strokeStyle="rgba(255,215,0,.5)";ctx.lineWidth=1.5;
+      rr(370,1920-620,340,52,26);ctx.stroke();
+      ctx.font="bold 22px Orbitron,monospace";ctx.fillStyle=GOLD;
+      ctx.fillText("PLACE  #"+num,540,1920-587);
+
+      // Place emoji + name — centered, smaller font, won't get cut
+      const placeName=(place.n||c.name);
+      const placeEmoji=(place.e||"📍");
+      ctx.font="bold 62px Cinzel,Georgia,serif";
+      // Auto-shrink if name is long
+      while(ctx.measureText(placeEmoji+" "+placeName).width>940&&parseInt(ctx.font)>36){
+        const sz=parseInt(ctx.font)-4;
+        ctx.font="bold "+sz+"px Cinzel,Georgia,serif";
+      }
+      ctx.fillStyle=WHITE;ctx.shadowColor="rgba(0,0,0,1)";ctx.shadowBlur=25;
+      ctx.fillText(placeEmoji+" "+placeName,540,1920-500);
+      ctx.shadowBlur=0;
+
+      // Short description / fun fact about the place
+      const placeDescs={
+        "Everest Base Camp":"Gateway to the world's highest peak at 8,849m · Khumbu Valley",
+        "Boudhanath Stupa":"One of the largest Buddhist stupas on Earth · UNESCO Heritage",
+        "Pokhara Lake":"Serene Phewa Lake with Annapurna reflections · Nepal's tourist hub",
+        "Chitwan Park":"UNESCO World Heritage · Home of tigers, rhinos & elephants",
+        "Lumbini":"Sacred birthplace of Gautam Buddha · 563 BC · Peace City",
+        "Annapurna Range":"10th highest peak on Earth · World's most popular trek",
+        "Grand Canyon":"277 miles long · Over 6 million years old · Arizona, USA",
+        "Times Square NY":"The Crossroads of the World · 330,000 visitors daily",
+        "Yellowstone":"World's first national park (1872) · 500 active geysers",
+        "Eiffel Tower":"324m tall · Visited by 7 million people every year · Paris",
+        "Mount Fuji":"3,776m · Active stratovolcano · Sacred symbol of Japan",
+        "Taj Mahal":"Built 1632-1653 · UNESCO Heritage · Symbol of eternal love",
+        "Machu Picchu":"Built by Incas in 1450 · Rediscovered 1911 · New 7 Wonders",
+        "Santorini":"Ancient volcanic caldera · Famous blue-domed churches · Greece",
+        "Great Wall":"21,196 km long · Built over 2,000 years · China's greatest symbol",
+        "Colosseum":"Built 70-80 AD · Held 50,000-80,000 spectators · Rome, Italy",
+        "Petra":"2,000 year old rock-carved city · One of the New 7 Wonders · Jordan",
+        "Cappadocia":"Fairy chimneys · Underground cities · Hot air balloon capital",
+        "Northern Lights":"Aurora Borealis · Best seen Sept-March · Natural light show",
+        "Burj Khalifa":"828m tall · 163 floors · World's tallest building · Dubai",
+      };
+      const desc=placeDescs[placeName]||c.name+" · "+c.region+" · A must-visit destination";
+      ctx.font="26px Rajdhani,sans-serif";ctx.fillStyle="rgba(255,255,255,.88)";
+      ctx.shadowColor="rgba(0,0,0,.9)";ctx.shadowBlur=12;
+      wt(desc,90,1920-430,900,36);
+      ctx.shadowBlur=0;
+
+      // Country + brand
+      ctx.font="24px Orbitron,monospace";ctx.fillStyle=GOLD;
+      ctx.fillText("📍 "+c.name.toUpperCase()+" · "+c.region.toUpperCase(),540,1920-120);
+      ctx.font="bold 36px Cinzel,Georgia,serif";ctx.fillStyle=WHITE;
+      ctx.shadowColor="rgba(0,0,0,.85)";ctx.shadowBlur=12;
+      ctx.fillText("CodeX with Thapa X Globe",540,1920-62);ctx.shadowBlur=0;
+      ctx.globalAlpha=1;
 
     } else if(phase===8){
       // STATS
@@ -1114,7 +1159,7 @@ async function playVideo(c,canvas,ctx){
       ctx.fillStyle="rgba(255,215,0,.1)";rr(88,858,904,128,18);ctx.fill();
       ctx.strokeStyle="rgba(255,215,0,.42)";ctx.lineWidth=2;rr(88,858,904,128,18);ctx.stroke();
       ctx.font="bold 36px Orbitron,monospace";ctx.fillStyle=GOLD;
-      ctx.fillText("🔔 SUBSCRIBE FOR MORE",540,940);
+      ctx.fillText("🔔 FOLLOW FOR MORE",540,940);
       ctx.font="bold 50px Cinzel,Georgia,serif";ctx.fillStyle=GOLD;
       ctx.shadowBlur=28;ctx.shadowColor=GOLD+"80";
       ctx.fillText("CodeX with Thapa X Globe",540,1615);ctx.shadowBlur=0;
