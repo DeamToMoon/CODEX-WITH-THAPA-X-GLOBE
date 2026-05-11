@@ -871,47 +871,58 @@ async function openC(cca2){
 }
 
 // ─── ANTHEM ──────────────────────────────────────────────────
+// iOS Safari CANNOT play .ogg — must proxy through corsproxy.io
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+
+function getAnthemSrc(url){
+  if(isIOS){
+    // corsproxy.io re-serves with correct MIME — works on iOS Safari
+    return"https://corsproxy.io/?"+encodeURIComponent(url);
+  }
+  return url;
+}
+
 function setupAnthem(c){
   const aud=document.getElementById("caud");
   aud.pause();
   aud.removeAttribute("crossorigin");
   aud.removeAttribute("src");
-  aud.removeAttribute("data-retried");
   aud.load();
 
-  // Check if anthems.js loaded correctly
-  const anthemLoaded=typeof ANTHEMS!=="undefined"&&Object.keys(ANTHEMS).length>0;
-  const a=anthemLoaded?ANTHEMS[c.cca2]:null;
-
+  const a=ANTHEMS[c.cca2];
   document.getElementById("aname").textContent=a?a.name:(c.name+" — National Anthem");
   document.getElementById("pbtn").textContent="▶";
   document.getElementById("apr").style.width="0%";
   document.getElementById("atm").textContent="0:00 / 0:00";
 
-  if(!anthemLoaded){
-    document.getElementById("anote").textContent="⚠️ anthems.js not loaded — upload it to GitHub!";
-    return;
-  }
-  if(!a){
-    document.getElementById("anote").textContent="No anthem file for "+c.name;
-    return;
-  }
+  if(!a){document.getElementById("anote").textContent="No anthem available";return;}
 
-  aud.src=a.url;
-  document.getElementById("anote").textContent="🎵 Tap ▶ to play";
+  // Build fallback chain
+  const urls=[
+    getAnthemSrc(a.url),
+    "https://corsproxy.io/?"+encodeURIComponent(a.url),
+    "https://api.allorigins.win/raw?url="+encodeURIComponent(a.url),
+    a.url,
+  ];
+  // Deduplicate
+  const tried=new Set();
+  const queue=urls.filter(u=>{if(tried.has(u))return false;tried.add(u);return true;});
+  let qi=0;
 
-  aud.oncanplay=function(){
-    document.getElementById("anote").textContent="🎵 "+a.name+" — ready ✓";
-  };
-  aud.onerror=function(){
-    const retried=aud.getAttribute("data-retried");
-    if(!retried){
-      aud.setAttribute("data-retried","1");
-      aud.src=a.url+"?t="+Date.now();
-      document.getElementById("anote").textContent="🔄 Retrying... tap ▶ again";
-    } else {
-      document.getElementById("anote").textContent="⚠️ Audio blocked — try tapping ▶ anyway";
+  document.getElementById("anote").textContent=isIOS?"🎵 Tap ▶ to play (loading for Safari...)":"🎵 Tap ▶ to play";
+
+  function tryNext(){
+    if(qi>=queue.length){
+      document.getElementById("anote").textContent="⚠️ Could not load — check internet connection";
+      return;
     }
+    aud.src=queue[qi++];
+    aud.load();
+  }
+
+  aud.onerror=function(){tryNext();};
+  aud.oncanplay=function(){
+    document.getElementById("anote").textContent="🎵 "+a.name+" · Ready — tap ▶";
   };
   aud.ontimeupdate=function(){
     if(!aud.duration||isNaN(aud.duration))return;
@@ -919,38 +930,32 @@ function setupAnthem(c){
     document.getElementById("atm").textContent=fT(aud.currentTime)+" / "+fT(aud.duration);
   };
   aud.onended=function(){document.getElementById("pbtn").textContent="▶";};
-  aud.onplay=function(){document.getElementById("pbtn").textContent="⏸";};
+  aud.onplay=function(){
+    document.getElementById("pbtn").textContent="⏸";
+    document.getElementById("anote").textContent="🎵 Now playing ♫";
+  };
   aud.onpause=function(){document.getElementById("pbtn").textContent="▶";};
+
+  tryNext();
 }
 
 function togglePlay(){
-  const a=document.getElementById("caud");
-  if(!a.src||a.src===window.location.href){
+  const aud=document.getElementById("caud");
+  if(!aud.src||aud.src===window.location.href){
     document.getElementById("anote").textContent="⚠️ No anthem loaded";
     return;
   }
-  if(!a.paused){
-    a.pause();
-    return;
-  }
-  // Direct play — user already tapped so iOS allows it
-  const p=a.play();
-  if(p!==undefined){
-    p.then(()=>{
-      document.getElementById("anote").textContent="🎵 Now playing...";
-    }).catch(()=>{
-      // Last resort: re-assign src and play
-      const url=a.src;
-      a.src="";
-      a.src=url;
-      a.load();
-      setTimeout(()=>{
-        a.play().catch(()=>{
-          document.getElementById("anote").textContent="🎵 Tap ▶ once more";
-        });
-      },300);
+  if(!aud.paused){aud.pause();return;}
+  aud.play().catch(()=>{
+    // iOS needs load() before play() sometimes
+    aud.load();
+    aud.addEventListener("canplay",function handler(){
+      aud.removeEventListener("canplay",handler);
+      aud.play().catch(()=>{
+        document.getElementById("anote").textContent="⚠️ Tap ▶ one more time";
+      });
     });
-  }
+  });
 }
 function seekA(e){
   const a=document.getElementById("caud");
@@ -1038,13 +1043,7 @@ function startVideo(){
   },100);
 
   setProg(5,"LOADING IMAGES...");
-
-  // Play anthem alongside video
-  const aud=document.getElementById("caud");
-  aud.currentTime=0;
-  aud.play().catch(()=>{
-    // iOS requires user gesture — already have one from button tap, should work
-  });
+  // Note: tap ▶ on the anthem player above to play music while video runs
 
   playVideo(curC,canvas,ctx);
 }
