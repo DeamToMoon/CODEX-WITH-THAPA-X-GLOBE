@@ -131,8 +131,10 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,10,20,.92);backdrop-f
 .dest-card:hover{transform:scale(1.03);border-color:rgba(255,215,0,.4);}
 .dest-card img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
 .dest-card:hover img{transform:scale(1.08);}
-.dest-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,transparent 60%);display:flex;align-items:flex-end;padding:12px;}
-.dest-name{font-family:‘Cinzel Decorative’,serif;font-size:10px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8);}
+.dest-rank{position:absolute;top:8px;right:8px;z-index:2;width:32px;height:32px;background:linear-gradient(135deg,var(–gold2),var(–gold));border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:‘Orbitron’,sans-serif;font-size:11px;font-weight:900;color:var(–dark);box-shadow:0 2px 8px rgba(255,215,0,.5);}
+.dest-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,transparent 55%);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;padding:10px 12px;}
+.dest-emoji{font-size:18px;margin-bottom:2px;}
+.dest-name{font-family:‘Cinzel Decorative’,serif;font-size:10px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8);line-height:1.3;}
 .dest-load{display:flex;align-items:center;justify-content:center;height:120px;color:var(–text2);font-family:‘Orbitron’,sans-serif;font-size:10px;letter-spacing:2px;}
 
 /* VIDEO MAKER */
@@ -471,60 +473,75 @@ const ANTHEMS = {
 };
 
 // ════════════════════════════════════════
-// DESTINATION QUERIES
+// TOP PLACES — 6 per country with display names
 // ════════════════════════════════════════
-const DESTS = {
-  US:['Times Square New York','Grand Canyon','Yellowstone Park','Statue of Liberty'],
-  GB:['Big Ben London','Stonehenge','Scottish Highlands','Buckingham Palace'],
-  FR:['Eiffel Tower Paris','Mont Saint-Michel','French Riviera','Louvre Museum'],
-  JP:['Mount Fuji','Kyoto temples','Tokyo Shibuya','Hiroshima Peace Park'],
-  AU:['Sydney Opera House','Great Barrier Reef','Uluru Australia','Bondi Beach'],
-  IT:['Colosseum Rome','Venice canals','Amalfi Coast','Tuscany Italy'],
-  IN:['Taj Mahal India','Kerala backwaters','Rajasthan forts','Varanasi India'],
-  BR:['Iguazu Falls','Rio de Janeiro','Amazon rainforest','Copacabana Beach'],
-  EG:['Pyramids of Giza','Luxor Egypt','Nile River','Alexandria Egypt'],
-  ZA:['Cape Town','Kruger National Park','Table Mountain','Garden Route'],
-  CN:['Great Wall of China','Zhangjiajie','Li River','Forbidden City'],
-  MX:['Chichen Itza','Copper Canyon','Mexico City','Tulum ruins'],
-  CA:['Niagara Falls','Banff National Park','Vancouver','Quebec City'],
-  NZ:['Milford Sound','Hobbiton','Queenstown','Fiordland'],
-  GR:['Santorini','Acropolis Athens','Meteora','Mykonos'],
-  ES:['Sagrada Familia','Alhambra Granada','Ibiza','Seville'],
-  TR:['Cappadocia','Hagia Sophia Istanbul','Pamukkale','Ephesus Turkey'],
-  PE:['Machu Picchu','Amazon Peru','Lake Titicaca','Cusco Peru'],
-  KE:['Masai Mara','Mount Kenya','Lamu Island','Amboseli'],
-  NP:['Everest Base Camp','Kathmandu','Pokhara','Chitwan Nepal'],
-  TH:['Bangkok temples','Phi Phi Islands','Chiang Mai','Ayutthaya'],
-  ID:['Bali Indonesia','Borobudur','Komodo Island','Raja Ampat'],
-  PH:['Palawan Philippines','Chocolate Hills','Mayon Volcano','Siargao'],
-  VN:['Halong Bay','Hoi An Vietnam','Ho Chi Minh City','Sapa Vietnam'],
-  MY:['Kuala Lumpur','Petronas Towers','Borneo Malaysia','Langkawi'],
-  DE:['Brandenburg Gate','Neuschwanstein Castle','Black Forest','Berlin'],
-  PT:['Lisbon Portugal','Sintra Portugal','Algarve','Porto'],
-  NO:['Norwegian Fjords','Northern Lights Norway','Bergen','Oslo'],
-  IS:['Northern Lights Iceland','Blue Lagoon Iceland','Geysir','Reykjavik'],
-  MA:['Marrakech medina','Sahara Desert Morocco','Chefchaouen','Fes Morocco'],
-  TZ:['Mount Kilimanjaro','Serengeti','Zanzibar Beach','Ngorongoro'],
-  UG:['Bwindi Uganda gorillas','Murchison Falls','Lake Victoria','Jinja Uganda'],
-  RU:['Red Square Moscow','Trans-Siberian Railway','Saint Petersburg','Lake Baikal'],
-  AR:['Buenos Aires','Iguazu Argentina','Patagonia','Perito Moreno glacier'],
-  CL:['Torres del Paine','Easter Island','Atacama Desert','Santiago Chile'],
-  CO:['Cartagena Colombia','Coffee Region Colombia','Amazon Colombia','Medellin'],
-  NG:['Lagos Nigeria','Yankari National Park','Calabar','Abuja'],
-  GH:['Cape Coast Castle Ghana','Kakum National Park','Accra Ghana','Ashanti'],
-  ET:['Lalibela Ethiopia','Danakil Depression','Simien Mountains','Addis Ababa'],
-  PK:['Lahore Fort','K2 Pakistan','Karakoram Highway','Mohenjo-daro'],
-  BD:['Sundarbans Bangladesh','Cox Bazar','Dhaka old city','Srimangal'],
-  LK:['Sigiriya Sri Lanka','Kandy Sri Lanka','Yala National Park','Galle Fort'],
-  MM:['Bagan Myanmar','Inle Lake','Shwedagon Pagoda','Mandalay'],
-  KH:['Angkor Wat','Phnom Penh','Sihanoukville','Battambang'],
-  SA:['Mecca Saudi Arabia','Petra-like AlUla','Riyadh skyline','Jeddah corniche'],
-  AE:['Burj Khalifa Dubai','Abu Dhabi mosque','Palm Jumeirah','Dubai Mall'],
-  JO:['Petra Jordan','Wadi Rum','Dead Sea Jordan','Jerash'],
-  IR:['Isfahan Iran','Persepolis','Tehran Grand Bazaar','Shiraz'],
-  UZ:['Samarkand','Bukhara Uzbekistan','Registan Square','Khiva'],
-  KZ:['Almaty Kazakhstan','Charyn Canyon','Nur-Sultan','Bayterek Tower'],
+const PLACES = {
+  NP:[{q:'Everest Base Camp Nepal',n:'Everest Base Camp',e:'🏔️'},{q:'Kathmandu Durbar Square',n:'Kathmandu',e:'🛕'},{q:'Pokhara lakeside Nepal',n:'Pokhara',e:'🏞️'},{q:'Chitwan National Park',n:'Chitwan Park',e:'🦏'},{q:'Lumbini Nepal birthplace Buddha',n:'Lumbini',e:'☸️'},{q:'Annapurna Circuit Nepal',n:'Annapurna',e:'⛰️'}],
+  US:[{q:'Times Square New York',n:'Times Square',e:'🗽'},{q:'Grand Canyon Arizona',n:'Grand Canyon',e:'🏜️'},{q:'Yellowstone National Park',n:'Yellowstone',e:'🌋'},{q:'Statue of Liberty New York',n:'Statue of Liberty',e:'🗽'},{q:'Niagara Falls USA',n:'Niagara Falls',e:'💧'},{q:'Hollywood Los Angeles',n:'Hollywood',e:'🎬'}],
+  GB:[{q:'Big Ben Westminster London',n:'Big Ben',e:'🕰️'},{q:'Stonehenge England',n:'Stonehenge',e:'🪨'},{q:'Scottish Highlands mountains',n:'Scottish Highlands',e:'🏔️'},{q:'Buckingham Palace London',n:'Buckingham Palace',e:'👑'},{q:'Tower of London',n:'Tower of London',e:'🏰'},{q:'Lake District England',n:'Lake District',e:'🌊'}],
+  FR:[{q:'Eiffel Tower Paris night',n:'Eiffel Tower',e:'🗼'},{q:'Mont Saint-Michel France',n:'Mont Saint-Michel',e:'🏰'},{q:'French Riviera Nice coast',n:'French Riviera',e:'🌊'},{q:'Louvre Museum Paris',n:'Louvre Museum',e:'🎨'},{q:'Versailles Palace France',n:'Palace of Versailles',e:'👑'},{q:'Provence lavender fields',n:'Provence',e:'💜'}],
+  JP:[{q:'Mount Fuji Japan cherry blossom',n:'Mount Fuji',e:'🗻'},{q:'Kyoto temples Japan',n:'Kyoto Temples',e:'⛩️'},{q:'Tokyo Shibuya crossing',n:'Shibuya Tokyo',e:'🏙️'},{q:'Hiroshima Peace Park',n:'Hiroshima',e:'☮️'},{q:'Osaka castle Japan',n:'Osaka Castle',e:'🏯'},{q:'Arashiyama bamboo forest Kyoto',n:'Bamboo Forest',e:'🎋'}],
+  AU:[{q:'Sydney Opera House',n:'Sydney Opera House',e:'🎭'},{q:'Great Barrier Reef aerial',n:'Great Barrier Reef',e:'🐠'},{q:'Uluru rock Australia',n:'Uluru',e:'🪨'},{q:'Bondi Beach Sydney',n:'Bondi Beach',e:'🏄'},{q:'Kakadu National Park',n:'Kakadu Park',e:'🦘'},{q:'Melbourne skyline Australia',n:'Melbourne',e:'🏙️'}],
+  IT:[{q:'Colosseum Rome Italy',n:'Colosseum',e:'🏛️'},{q:'Venice canals gondola',n:'Venice',e:'🛶'},{q:'Amalfi Coast Italy',n:'Amalfi Coast',e:'🌊'},{q:'Tuscany vineyard Italy',n:'Tuscany',e:'🍷'},{q:'Dolomites mountains Italy',n:'Dolomites',e:'⛰️'},{q:'Cinque Terre Italy',n:'Cinque Terre',e:'🏘️'}],
+  IN:[{q:'Taj Mahal Agra India',n:'Taj Mahal',e:'🕌'},{q:'Kerala backwaters boat',n:'Kerala',e:'🚤'},{q:'Rajasthan Jaisalmer fort',n:'Rajasthan',e:'🏰'},{q:'Varanasi Ganges India',n:'Varanasi',e:'🙏'},{q:'Himalaya India mountains',n:'Himalayas',e:'🏔️'},{q:'Goa beach India',n:'Goa Beach',e:'🏖️'}],
+  CN:[{q:'Great Wall of China',n:'Great Wall',e:'🧱'},{q:'Zhangjiajie Avatar mountains',n:'Zhangjiajie',e:'🏔️'},{q:'Li River Guilin China',n:'Li River',e:'🛶'},{q:'Forbidden City Beijing',n:'Forbidden City',e:'🏯'},{q:'Karst mountains Guilin',n:'Guilin',e:'⛰️'},{q:'Yellow Mountains Huangshan',n:'Huangshan',e:'🌄'}],
+  BR:[{q:'Iguazu Falls Brazil',n:'Iguazu Falls',e:'💧'},{q:'Rio de Janeiro Christ Redeemer',n:'Christ Redeemer',e:'✝️'},{q:'Amazon rainforest Brazil',n:'Amazon',e:'🌿'},{q:'Copacabana Beach Rio',n:'Copacabana',e:'🏖️'},{q:'Pantanal wetlands Brazil',n:'Pantanal',e:'🐊'},{q:'Fernando de Noronha island Brazil',n:'Fernando de Noronha',e:'🏝️'}],
+  EG:[{q:'Pyramids of Giza Egypt',n:'Pyramids of Giza',e:'🔺'},{q:'Luxor Temple Egypt',n:'Luxor Temple',e:'🏛️'},{q:'Nile River cruise Egypt',n:'Nile River',e:'🚢'},{q:'Red Sea diving Egypt',n:'Red Sea',e:'🤿'},{q:'Abu Simbel Egypt',n:'Abu Simbel',e:'🗿'},{q:'Alexandria Egypt ancient',n:'Alexandria',e:'📚'}],
+  ZA:[{q:'Cape Town Table Mountain',n:'Table Mountain',e:'⛰️'},{q:'Kruger National Park lions',n:'Kruger Park',e:'🦁'},{q:'Cape of Good Hope South Africa',n:'Cape of Good Hope',e:'🌊'},{q:'Garden Route South Africa',n:'Garden Route',e:'🌿'},{q:'Drakensberg Mountains',n:'Drakensberg',e:'🏔️'},{q:'Winelands Stellenbosch South Africa',n:'Winelands',e:'🍷'}],
+  MX:[{q:'Chichen Itza pyramid Mexico',n:'Chichen Itza',e:'🔺'},{q:'Copper Canyon Mexico',n:'Copper Canyon',e:'🏜️'},{q:'Tulum ruins beach Mexico',n:'Tulum',e:'🏛️'},{q:'Mexico City historic center',n:'Mexico City',e:'🏙️'},{q:'Oaxaca Mexico colorful',n:'Oaxaca',e:'🎨'},{q:'Palenque ruins jungle Mexico',n:'Palenque',e:'🌿'}],
+  CA:[{q:'Banff National Park lake',n:'Banff',e:'🏔️'},{q:'Niagara Falls Canada',n:'Niagara Falls',e:'💧'},{q:'Vancouver skyline mountains',n:'Vancouver',e:'🏙️'},{q:'Quebec City old town',n:'Quebec City',e:'🏰'},{q:'Northern Lights Canada',n:'Northern Lights',e:'🌌'},{q:'Jasper National Park Canada',n:'Jasper Park',e:'🌲'}],
+  GR:[{q:'Santorini Greece sunset',n:'Santorini',e:'🌅'},{q:'Acropolis Athens Greece',n:'Acropolis',e:'🏛️'},{q:'Meteora monasteries Greece',n:'Meteora',e:'⛪'},{q:'Mykonos Greece beach',n:'Mykonos',e:'🏖️'},{q:'Delphi ancient Greece',n:'Delphi',e:'🏺'},{q:'Corfu island Greece',n:'Corfu',e:'🌿'}],
+  ES:[{q:'Sagrada Familia Barcelona',n:'Sagrada Familia',e:'⛪'},{q:'Alhambra Granada Spain',n:'Alhambra',e:'🏰'},{q:'Ibiza beach Spain',n:'Ibiza',e:'🏖️'},{q:'Seville cathedral Spain',n:'Seville',e:'🌸'},{q:'Park Guell Barcelona',n:'Park Güell',e:'🎨'},{q:'Camino de Santiago Spain',n:'Camino de Santiago',e:'⛰️'}],
+  TR:[{q:'Cappadocia hot air balloon',n:'Cappadocia',e:'🎈'},{q:'Hagia Sophia Istanbul',n:'Hagia Sophia',e:'🕌'},{q:'Pamukkale white terraces',n:'Pamukkale',e:'🏊'},{q:'Ephesus ruins Turkey',n:'Ephesus',e:'🏛️'},{q:'Bosphorus strait Istanbul',n:'Bosphorus',e:'🌉'},{q:'Nemrut Mountain Turkey statues',n:'Mount Nemrut',e:'🗿'}],
+  PE:[{q:'Machu Picchu Peru',n:'Machu Picchu',e:'🏔️'},{q:'Amazon Peru jungle',n:'Amazon Peru',e:'🌿'},{q:'Lake Titicaca Peru Bolivia',n:'Lake Titicaca',e:'🌊'},{q:'Cusco Peru Inca',n:'Cusco',e:'🏛️'},{q:'Nazca Lines aerial Peru',n:'Nazca Lines',e:'✈️'},{q:'Rainbow Mountain Peru',n:'Rainbow Mountain',e:'🌈'}],
+  KE:[{q:'Masai Mara Kenya safari',n:'Masai Mara',e:'🦁'},{q:'Mount Kenya peak',n:'Mount Kenya',e:'🏔️'},{q:'Lamu Island Kenya',n:'Lamu Island',e:'🏝️'},{q:'Amboseli Kilimanjaro Kenya',n:'Amboseli',e:'🐘'},{q:'Diani Beach Kenya',n:'Diani Beach',e:'🏖️'},{q:'Nairobi National Park',n:'Nairobi Park',e:'🦒'}],
+  TH:[{q:'Bangkok Wat Phra Kaew temple',n:'Bangkok Temples',e:'⛩️'},{q:'Phi Phi Islands Thailand',n:'Phi Phi Islands',e:'🏝️'},{q:'Chiang Mai temples Thailand',n:'Chiang Mai',e:'🏯'},{q:'Ayutthaya ruins Thailand',n:'Ayutthaya',e:'🏛️'},{q:'Koh Samui beach Thailand',n:'Koh Samui',e:'🌴'},{q:'Railay Beach Krabi Thailand',n:'Railay Beach',e:'🧗'}],
+  ID:[{q:'Bali temple rice terrace',n:'Bali',e:'🌾'},{q:'Borobudur temple Indonesia',n:'Borobudur',e:'🏛️'},{q:'Komodo Island dragon',n:'Komodo Island',e:'🦎'},{q:'Raja Ampat Papua Indonesia',n:'Raja Ampat',e:'🐠'},{q:'Bromo volcano Indonesia',n:'Mount Bromo',e:'🌋'},{q:'Lombok Rinjani Indonesia',n:'Mount Rinjani',e:'⛰️'}],
+  MA:[{q:'Marrakech medina souk Morocco',n:'Marrakech',e:'🕌'},{q:'Sahara Desert Morocco dunes',n:'Sahara Desert',e:'🏜️'},{q:'Chefchaouen blue city Morocco',n:'Chefchaouen',e:'💙'},{q:'Fes medina Morocco',n:'Fès Medina',e:'🏘️'},{q:'Atlas Mountains Morocco',n:'Atlas Mountains',e:'⛰️'},{q:'Essaouira Morocco coast',n:'Essaouira',e:'🌊'}],
+  AE:[{q:'Burj Khalifa Dubai night',n:'Burj Khalifa',e:'🏙️'},{q:'Sheikh Zayed Mosque Abu Dhabi',n:'Sheikh Zayed Mosque',e:'🕌'},{q:'Palm Jumeirah aerial Dubai',n:'Palm Jumeirah',e:'🌴'},{q:'Dubai Mall fountain',n:'Dubai Mall',e:'🛍️'},{q:'Wadi Rum UAE desert',n:'Liwa Desert',e:'🏜️'},{q:'Dubai Marina skyline',n:'Dubai Marina',e:'⛵'}],
+  JO:[{q:'Petra Jordan rose city',n:'Petra',e:'🏛️'},{q:'Wadi Rum Jordan desert',n:'Wadi Rum',e:'🏜️'},{q:'Dead Sea Jordan float',n:'Dead Sea',e:'🌊'},{q:'Jerash ruins Jordan',n:'Jerash',e:'🏺'},{q:'Aqaba Red Sea Jordan',n:'Aqaba',e:'🤿'},{q:'Amman citadel Jordan',n:'Amman Citadel',e:'🏰'}],
+  IS:[{q:'Northern Lights Iceland aurora',n:'Northern Lights',e:'🌌'},{q:'Blue Lagoon Iceland geothermal',n:'Blue Lagoon',e:'💧'},{q:'Geysir geyser Iceland',n:'Geysir',e:'💦'},{q:'Jokulsarlon glacier lagoon Iceland',n:'Glacier Lagoon',e:'🧊'},{q:'Reykjavik colorful houses',n:'Reykjavik',e:'🏘️'},{q:'Skogafoss waterfall Iceland',n:'Skógafoss',e:'🌊'}],
+  NO:[{q:'Norwegian fjords scenic',n:'Norwegian Fjords',e:'🌊'},{q:'Northern Lights Norway',n:'Northern Lights',e:'🌌'},{q:'Bergen wharf Norway',n:'Bergen',e:'🏘️'},{q:'Trolltunga Norway cliff',n:'Trolltunga',e:'🧗'},{q:'Lofoten Islands Norway',n:'Lofoten Islands',e:'🏔️'},{q:'Oslo opera house',n:'Oslo',e:'🏛️'}],
+  RU:[{q:'Red Square Moscow Russia',n:'Red Square',e:'🟥'},{q:'Saint Petersburg canal Russia',n:'St. Petersburg',e:'🌉'},{q:'Lake Baikal Russia winter',n:'Lake Baikal',e:'🌊'},{q:'Trans-Siberian Railway Russia',n:'Trans-Siberian',e:'🚂'},{q:'Kamchatka volcanoes Russia',n:'Kamchatka',e:'🌋'},{q:'Moscow Kremlin night',n:'Kremlin',e:'🏰'}],
+  SA:[{q:'Mecca Masjid al-Haram',n:'Mecca',e:'🕋'},{q:'AlUla Hegra Saudi Arabia',n:'AlUla',e:'🏛️'},{q:'Riyadh skyline Saudi Arabia',n:'Riyadh',e:'🏙️'},{q:'Jeddah old town Saudi Arabia',n:'Al-Balad Jeddah',e:'🏘️'},{q:'Edge of the World Riyadh',n:'Edge of the World',e:'🌅'},{q:'Red Sea coral Saudi Arabia',n:'Red Sea Coral',e:'🐠'}],
 };
+
+// ════════════════════════════════════════
+// NATION PRIDE FACTS — unique facts per country
+// ════════════════════════════════════════
+const PRIDE = {
+  NP:['🏔️ Home of Mt. Everest — World\'s Highest Peak (8,849m)','☸️ Birthplace of Gautam Buddha — Founder of Buddhism','🦏 One-Horned Rhinoceros lives here','🏔️ 8 of the 14 highest peaks in the world','🌸 Only country with a non-rectangular flag'],
+  US:['🗽 Home of the Statue of Liberty — Gift from France','🌕 First country to land humans on the Moon','🎬 Hollywood — Entertainment Capital of the World','🏈 Invented Basketball & American Football','🎸 Birthplace of Jazz, Blues & Rock & Roll'],
+  GB:['👑 Birthplace of the English Language','⚽ Football (Soccer) was invented here','🎭 Home of William Shakespeare','🚂 Built the world\'s first public railway','🔬 Newton, Darwin & Hawking — Home of Genius'],
+  FR:['🗼 Eiffel Tower — Most visited monument on Earth','🥐 Invented Croissants, Baguettes & Haute Cuisine','🎨 Home of the Louvre — World\'s largest art museum','✈️ Invented the Hot Air Balloon (1783)','🍷 World\'s #1 wine producer & exporter'],
+  JP:['🗻 Mount Fuji — Sacred symbol of Japan','🌸 Cherry Blossom (Sakura) festival culture','🚄 Bullet Train (Shinkansen) — World\'s fastest','🤖 Leader in Robotics & Technology innovation','🍜 Ramen, Sushi, Anime — Global cultural exports'],
+  IN:['🛕 Birthplace of Hinduism, Buddhism & Jainism','♟️ Chess was invented in ancient India','🔢 Zero (0) was invented in India','🧘 Yoga originated in India 5,000 years ago','💎 Once produced 100% of world\'s diamonds'],
+  CN:['🧱 Great Wall — Longest wall in human history (21,196 km)','🧭 Compass, Paper, Printing & Gunpowder invented here','🐼 Home of the Giant Panda','🎆 Fireworks were invented in China','🏺 5,000+ years of continuous civilization'],
+  BR:['⚽ Most successful football (soccer) nation (5 WC titles)','🌿 Amazon Rainforest — Lungs of the Earth','🦜 Hosts 10% of all species on Earth','💃 Carnival — World\'s largest street festival','☕ World\'s #1 coffee producer'],
+  EG:['🔺 Pyramids of Giza — Last surviving Wonder of Ancient World','📜 Invented hieroglyphics & paper (papyrus)','🌊 Suez Canal connects 2 oceans','😺 Ancient Egyptians worshipped cats','👁️ Oldest civilization still existing (7,000+ years)'],
+  IT:['🏛️ Rome — Built on 7 Hills, once ruled the world','🍕 Invented Pizza, Pasta, Gelato & Espresso','🎨 Renaissance birthplace — Da Vinci, Michelangelo','🏎️ Ferrari, Lamborghini, Maserati — Built in Italy','🎭 Opera was invented in Italy (1600s)'],
+  DE:['🚗 Invented the Automobile — Karl Benz (1885)','🍺 Oktoberfest — World\'s largest beer festival','🖨️ Gutenberg invented the Printing Press here','🏆 3x World Cup winners','🎵 Bach, Beethoven & Brahms all German'],
+  AU:['🦘 Home of Kangaroos & Koalas found nowhere else','🐚 Great Barrier Reef — World\'s largest living structure','☀️ Sunniest continent on Earth','🪃 Aboriginal culture is 65,000 years old','🏄 World\'s best surf & beach culture'],
+  CA:['🍁 Maple Syrup — Canada produces 71% of world supply','🏒 Invented Ice Hockey in 1875','🌌 Best place to see Northern Lights','📱 BlackBerry & many tech giants born here','🐻 Home of Polar Bears, Moose & Beavers'],
+  MX:['🌽 Corn (Maize) was first grown in Mexico 9,000 years ago','🌶️ Chili peppers & chocolate originated here','🎭 Day of the Dead — UNESCO cultural heritage','🦋 Monarch butterfly migration happens here','🏛️ More UNESCO sites than any country in Americas'],
+  AR:['🥩 World\'s best beef & BBQ (Asado)','💃 Tango dance was born in Buenos Aires','🏆 3x FIFA World Cup Champions','🍷 World-class Malbec wine from Mendoza','🏔️ Aconcagua — Highest peak outside Asia'],
+  ZA:['🌈 Rainbow Nation — 11 official languages','💎 World\'s largest producer of Platinum & Chromium','🦁 Big Five safari animals all found here','🏉 Rugby World Cup Champions (2019, 2023)','🌿 Cape Floristic Region — Biodiversity hotspot'],
+  KE:['🏃 Kenyan runners dominate marathon world records','🦁 Great Migration starts in Masai Mara','☕ Kenya AA — Among world\'s finest coffees','🦒 Nairobi — Only city with a national park inside it','🌋 Great Rift Valley runs through Kenya'],
+  TH:['🐘 Elephant — National symbol, revered & protected','🍜 Thai cuisine voted world\'s most popular food','🛕 Thailand has 40,000+ Buddhist temples','🥊 Muay Thai — Ancient martial art born here','🌺 Lotus & Orchid — National flowers of Thailand'],
+  TR:['🌉 Istanbul — Only city on 2 continents (Europe & Asia)','🍦 Ice cream was invented in Maraş, Turkey','🌷 Tulips originated in Turkey (not Netherlands!)','☕ Turkish coffee — 500 year old tradition','🏛️ Troy, Ephesus — Ancient wonders stand here'],
+  PE:['🏔️ Machu Picchu — Lost city of the Incas','🥔 Potato originated in Peru 8,000 years ago','🦙 Llamas & Alpacas native only to Peru & Bolivia','🌈 Rainbow Mountain — Natural wonder of colors','🐦 Condor — Largest flying bird, lives in Andes'],
+  GR:['🏛️ Birthplace of Democracy, Philosophy & Olympics','⚡ Zeus, Athena & Greek Gods born in mythology here','🔤 Greek alphabet is basis of all European scripts','🚢 World\'s largest merchant navy fleet','🍯 Honey produced here since 10,000 BC'],
+  IS:['🌋 More geysers & volcanoes than anywhere on Earth','🌌 Best Northern Lights destination on Earth','♻️ 100% powered by renewable energy','📖 Highest book-publishing rate per capita in world','🧊 Land of Fire & Ice'],
+  NO:['🛢️ Largest sovereign wealth fund in the world','🐟 World\'s largest salmon exporter','🌊 Fjords — Some of deepest in the world','⛵ Vikings originated from Norway','🎿 Skiing was invented in Norway 5,000 years ago'],
+  RU:['🚀 First country to send human to space (Yuri Gagarin)','🏔️ Russia is the largest country on Earth','🎭 Bolshoi Ballet — Most famous ballet company','🐅 Siberian Tiger lives only in Russian Far East','♟️ Most Chess Grandmasters in the world'],
+  SA:['🕋 Mecca — Holiest city in Islam, 2M+ pilgrims/year','🛢️ World\'s largest oil reserves','🌴 Date palm capital of the world','🏜️ Rub al Khali — World\'s largest sand desert','🦅 Falcon — National symbol, fastest animal on Earth'],
+  AE:['🏙️ Burj Khalifa — World\'s tallest building (828m)','✈️ Dubai — World\'s busiest international airport','🏎️ Abu Dhabi Formula 1 Grand Prix host','🛢️ OPEC founding member — Energy powerhouse','🌴 The Palm Jumeirah — Visible from space'],
+  JO:['🏛️ Petra — One of the New 7 Wonders of the World','🌊 Dead Sea — Lowest point on Earth (-430m)','🏜️ Wadi Rum — Used as Mars in Hollywood films','🕌 Jerash — Best preserved Roman city outside Italy','🌟 Jordan hosts 2M+ refugees — Most per capita globally'],
+  ID:['🌋 More active volcanoes than any country (127)','🦎 Komodo Dragon — World\'s largest lizard lives here','🌿 2nd largest tropical rainforest on Earth','🐠 Raja Ampat — Most biodiverse marine region on Earth','🏝️ Largest archipelago on Earth — 17,508 islands'],
+  MA:['💙 Chefchaouen — Blue City, one of Earth\'s most photogenic','🏜️ Gateway to the Sahara Desert','🕌 Fès — World\'s oldest university (859 AD)','🍋 World\'s largest exporter of phosphate','🏺 Berber civilization dates back 10,000+ years'],
+};
+
+
 
 // ════════════════════════════════════════
 // ALL COUNTRIES DATA (embedded, no API)
@@ -923,28 +940,36 @@ function seekAudio(e){
 }
 
 async function loadDestinations(c){
-  const queries=DESTS[c.cca2]||[
-    c.name+' landmark',c.name+' nature travel',
-    c.name+' famous place',c.name+' tourism'
+  const places=PLACES[c.cca2]||[
+    {q:c.name+' landmark',n:c.name+' Landmark',e:'📍'},
+    {q:c.name+' nature scenic',n:'Nature',e:'🌿'},
+    {q:c.name+' famous place',n:'Famous Place',e:'🏛️'},
+    {q:c.name+' tourism attraction',n:'Attraction',e:'🎯'},
+    {q:c.name+' scenic view',n:'Scenic View',e:'🌄'},
+    {q:c.name+' cultural heritage',n:'Heritage',e:'🏺'},
   ];
-  const results=await Promise.all(queries.slice(0,4).map(q=>fetchPhoto(q)));
+  const results=await Promise.all(places.map(p=>fetchPhoto(p.q,p.n,p.e)));
   destPhotos=results.filter(Boolean);
   if(!destPhotos.length){
     document.getElementById('dest-grid').innerHTML='<div class="dest-load">📷 Photos unavailable for this country</div>';
     return;
   }
-  document.getElementById('dest-grid').innerHTML=destPhotos.map(r=>`
+  document.getElementById('dest-grid').innerHTML=destPhotos.map((r,i)=>`
     <div class="dest-card">
+      <div class="dest-rank">#${i+1}</div>
       <img src="${r.url}" alt="${r.name}" loading="lazy" onerror="this.parentElement.style.display='none'"/>
-      <div class="dest-ov"><div class="dest-name">${r.name}</div></div>
+      <div class="dest-ov">
+        <div class="dest-emoji">${r.emoji}</div>
+        <div class="dest-name">${r.name}</div>
+      </div>
     </div>`).join('');
 }
 
-async function fetchPhoto(q){
+async function fetchPhoto(q,name='',emoji='📍'){
   try{
     const r=await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=1&orientation=landscape&client_id=${CFG.unsplashKey}`);
     const d=await r.json();
-    if(d.results&&d.results[0])return{url:d.results[0].urls.regular,name:q.replace(/ (landmark|nature travel|famous place|tourism)$/i,'')};
+    if(d.results&&d.results[0])return{url:d.results[0].urls.regular,name:name||q,emoji};
   }catch(e){}
   return null;
 }
@@ -975,18 +1000,30 @@ async function generateVideo(){
   const ctx=canvas.getContext('2d');
   canvas.width=1080;canvas.height=1920;
 
-  // Load images
+  // Load 6 destination images
+  const placeListForVideo=(PLACES[c.cca2]||[]).slice(0,6);
   const images=[];
-  for(const p of destPhotos.slice(0,4)){
+  for(const p of placeListForVideo.length?placeListForVideo:destPhotos.slice(0,6)){
+    const query=p.q||(p.name+' '+c.name);
+    const name=p.n||p.name||c.name;
+    const emoji=p.e||p.emoji||'📍';
     try{
-      const img=await loadImg(p.url);
-      images.push({img,name:p.name});
-    }catch(e){}
+      let imgUrl=null;
+      // Try to find in already-loaded destPhotos first
+      const cached=destPhotos.find(d=>d.name===name);
+      if(cached)imgUrl=cached.url;
+      else{
+        const res=await fetchPhoto(query,name,emoji);
+        if(res)imgUrl=res.url;
+      }
+      if(imgUrl){
+        const img=await loadImg(imgUrl);
+        images.push({img,name,emoji});
+      }
+    }catch(e){images.push({img:null,name,emoji:emoji});}
   }
-  if(!images.length){
-    // fallback gradient bg
-    images.push({img:null,name:c.name});
-  }
+  // Pad to 6 if needed
+  while(images.length<6)images.push({img:null,name:c.name,emoji:'📍'});
 
   setProgress(20,'LOADING ANTHEM...');
 
@@ -1014,8 +1051,12 @@ async function generateVideo(){
     dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
   }catch(e){}
 
-  const mimeType=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
-  mediaRecorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:4000000});
+  // Try to record directly as MP4 (Safari/some Chrome), else WebM → convert
+  const mp4Mime='video/mp4;codecs=avc1';
+  const webmMime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
+  const useMp4Direct=MediaRecorder.isTypeSupported(mp4Mime);
+  const mimeType=useMp4Direct?mp4Mime:webmMime;
+  mediaRecorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:5000000});
   mediaRecorder.ondataavailable=e=>{if(e.data.size>0)recordedChunks.push(e.data);};
   mediaRecorder.onstop=()=>finalizeVideo(c);
   mediaRecorder.start(100);
@@ -1074,54 +1115,192 @@ async function generateVideo(){
     return y+lineH;
   }
 
+  // Video structure: 0=intro(10s), 1=pride(10s), 2-7=top6places(~14s each), 8=stats(12s), 9=outro(10s)
+  const TOTAL_PHASES=10;
+  const phaseDur=totalDuration/TOTAL_PHASES;
+  const prideList=PRIDE[c.cca2]||[
+    '🌍 '+c.name+' — A Beautiful Nation',
+    '🏙️ Capital: '+c.capital,
+    '🗣️ Language: '+c.lang,
+    '💰 Currency: '+c.cur,
+    '🌐 Region: '+c.region,
+  ];
+  const placeList=(PLACES[c.cca2]||[{n:c.name,e:'📍'},{n:'Nature',e:'🌿'},{n:'Heritage',e:'🏛️'},{n:'Culture',e:'🎭'},{n:'Landmark',e:'🗿'},{n:'Adventure',e:'🧗'}]).slice(0,6);
+
   function drawPhase(elapsed){
-    const phase=Math.floor(elapsed/imgDuration);
-    const phaseT=(elapsed%imgDuration)/imgDuration;// 0-1 within phase
+    const phase=Math.floor(elapsed/phaseDur);
+    const phaseT=(elapsed%phaseDur)/phaseDur; // 0→1 within phase
+    const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;// easeInOut
 
+    // ── PHASE 0: EPIC INTRO ──
     if(phase===0){
-      // ── INTRO SLIDE ──
-      drawBg('#050A14','#0A2040');
+      drawBg('#020810','#061428');
       drawStars();
-      // Flag big
-      ctx.font=`${Math.floor(200+phaseT*20)}px serif`;
-      ctx.textAlign='center';
-      ctx.fillText(flag(c.cca2),canvas.width/2,500);
-      // Country name
-      ctx.font='bold 90px Cinzel,Georgia,serif';
-      ctx.fillStyle=GOLD;
-      ctx.shadowColor='rgba(255,215,0,0.5)';ctx.shadowBlur=40;
-      ctx.fillText(c.name,canvas.width/2,680);
-      ctx.shadowBlur=0;
-      // Subtitle
-      ctx.font='40px Orbitron,monospace';ctx.fillStyle=ACCENT;
-      ctx.fillText(c.region+' · '+c.sub,canvas.width/2,760);
-      ctx.font='36px Rajdhani,sans-serif';ctx.fillStyle=WHITE;
-      ctx.fillText('Capital: '+c.capital,canvas.width/2,840);
-      // "National Anthem" label
-      ctx.font='bold 38px Orbitron,monospace';ctx.fillStyle=GOLD;
-      ctx.fillText('♫ NATIONAL ANTHEM',canvas.width/2,940);
-      // Animated waveform
-      for(let i=0;i<40;i++){
-        const h=60+Math.sin((i/40)*Math.PI*4+elapsed/200)*80+Math.random()*20;
-        ctx.fillStyle=`rgba(0,229,255,${0.4+Math.sin(elapsed/300+i)*.3})`;
-        ctx.fillRect(canvas.width/2-400+i*20,1050-h,14,h);
+      // Pulsing circle behind flag
+      const pulse=0.85+Math.sin(elapsed/400)*0.15;
+      ctx.beginPath();ctx.arc(canvas.width/2,580,180*pulse,0,Math.PI*2);
+      const gr=ctx.createRadialGradient(canvas.width/2,580,0,canvas.width/2,580,180);
+      gr.addColorStop(0,'rgba(255,215,0,0.18)');gr.addColorStop(1,'rgba(255,215,0,0)');
+      ctx.fillStyle=gr;ctx.fill();
+      // Flag
+      const flagScale=ease(Math.min(phaseT*3,1));
+      ctx.font=`${Math.floor(180*flagScale)}px serif`;
+      ctx.textAlign='center';ctx.fillText(flag(c.cca2),canvas.width/2,540);
+      // Country name slide in
+      if(phaseT>0.15){
+        const a=ease(Math.min((phaseT-0.15)*4,1));
+        ctx.globalAlpha=a;
+        ctx.font='bold 96px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
+        ctx.shadowColor='rgba(255,215,0,0.7)';ctx.shadowBlur=50;
+        ctx.fillText(c.name,canvas.width/2,690);ctx.shadowBlur=0;
+        ctx.globalAlpha=1;
       }
-      // CodeX brand
-      ctx.font='bold 48px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
-      ctx.fillText('CodeX with Thapa X Globe',canvas.width/2,1720);
+      // Region badge
+      if(phaseT>0.3){
+        const a=ease(Math.min((phaseT-0.3)*4,1));
+        ctx.globalAlpha=a;
+        ctx.font='38px Orbitron,monospace';ctx.fillStyle=ACCENT;
+        ctx.fillText(c.region.toUpperCase()+' · '+c.sub.toUpperCase(),canvas.width/2,780);
+        ctx.globalAlpha=1;
+      }
+      // Animated waveform
+      if(phaseT>0.4){
+        for(let i=0;i<50;i++){
+          const h=50+Math.sin((i/50)*Math.PI*6+elapsed/180)*90;
+          const alpha=0.3+Math.sin(elapsed/250+i*0.3)*0.25;
+          ctx.fillStyle=i%3===0?`rgba(255,215,0,${alpha})`:`rgba(0,229,255,${alpha})`;
+          ctx.fillRect(canvas.width/2-490+i*20,950-h,14,h);
+        }
+      }
+      // Bottom brand
+      ctx.font='bold 52px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
+      ctx.shadowBlur=20;ctx.shadowColor='rgba(255,215,0,0.4)';
+      ctx.fillText('CodeX with Thapa X Globe',canvas.width/2,1750);ctx.shadowBlur=0;
 
+    // ── PHASE 1: NATION PRIDE FACTS ──
     } else if(phase===1){
-      // ── STATS SLIDE ──
-      drawBg('#050A14','#0F1A30');
+      drawBg('#050A14','#0A1A0A');
       drawStars();
       ctx.textAlign='center';
-      ctx.font='bold 70px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
-      ctx.shadowColor='rgba(255,215,0,.4)';ctx.shadowBlur=30;
-      ctx.fillText(c.name,canvas.width/2,120);
-      ctx.shadowBlur=0;
+      // Header
+      ctx.font='bold 58px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
+      ctx.shadowColor='rgba(255,215,0,.5)';ctx.shadowBlur=30;
+      ctx.fillText('🌟 NATION PRIDE',canvas.width/2,110);ctx.shadowBlur=0;
       ctx.font='32px Orbitron,monospace';ctx.fillStyle=ACCENT;
-      ctx.fillText('COUNTRY FACTS',canvas.width/2,180);
-      // Draw stat cards
+      ctx.fillText(c.name.toUpperCase(),canvas.width/2,170);
+      // Divider line
+      ctx.strokeStyle='rgba(255,215,0,0.3)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(80,195);ctx.lineTo(canvas.width-80,195);ctx.stroke();
+      // Pride facts as glowing cards
+      prideList.slice(0,5).forEach((fact,i)=>{
+        const cardY=230+i*310;
+        const delay=i*0.12;
+        const a=phaseT>delay?ease(Math.min((phaseT-delay)*6,1)):0;
+        ctx.globalAlpha=a;
+        // Card bg
+        ctx.fillStyle=`rgba(255,215,0,0.06)`;
+        roundRect(ctx,50,cardY,980,285,18);ctx.fill();
+        ctx.strokeStyle=`rgba(255,215,0,0.25)`;ctx.lineWidth=1.5;
+        roundRect(ctx,50,cardY,980,285,18);ctx.stroke();
+        // Number badge
+        const badges=['01','02','03','04','05'];
+        ctx.font='bold 90px Orbitron,monospace';
+        ctx.fillStyle=`rgba(255,215,0,0.08)`;
+        ctx.textAlign='right';
+        ctx.fillText(badges[i],canvas.width-70,cardY+220);
+        ctx.textAlign='left';
+        // Fact text
+        ctx.font='bold 38px Rajdhani,sans-serif';ctx.fillStyle=WHITE;
+        wrapText(fact,80,cardY+100,900,52);
+        ctx.globalAlpha=1;
+      });
+
+    // ── PHASES 2–7: TOP 6 PLACES with COUNTDOWN ──
+    } else if(phase>=2&&phase<=7){
+      const idx=phase-2; // 0→5
+      const placeNum=6-idx; // countdown: 6,5,4,3,2,1
+      const item=images[idx];
+      const place=placeList[idx];
+
+      if(item&&item.img){
+        // Full bleed photo
+        const iw=item.img.width,ih=item.img.height;
+        const scale=Math.max(canvas.width/iw,canvas.height/ih);
+        const dw=iw*scale,dh=ih*scale;
+        // Ken Burns zoom
+        const zoom=1+phaseT*0.06;
+        ctx.drawImage(item.img,(canvas.width-dw*zoom)/2,(canvas.height-dh*zoom)/2,dw*zoom,dh*zoom);
+        // Dark vignette overlay
+        const ov=ctx.createRadialGradient(canvas.width/2,canvas.height/2,200,canvas.width/2,canvas.height/2,900);
+        ov.addColorStop(0,'rgba(0,0,0,0)');ov.addColorStop(1,'rgba(0,0,0,0.55)');
+        ctx.fillStyle=ov;ctx.fillRect(0,0,canvas.width,canvas.height);
+        // Gradient bottom
+        const btm=ctx.createLinearGradient(0,canvas.height-600,0,canvas.height);
+        btm.addColorStop(0,'rgba(0,0,0,0)');btm.addColorStop(1,'rgba(0,0,0,0.92)');
+        ctx.fillStyle=btm;ctx.fillRect(0,0,canvas.width,canvas.height);
+        // Gradient top
+        const top2=ctx.createLinearGradient(0,0,0,300);
+        top2.addColorStop(0,'rgba(0,0,0,0.7)');top2.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=top2;ctx.fillRect(0,0,canvas.width,300);
+      } else {
+        drawBg('#061428','#102030');drawStars();
+      }
+
+      ctx.textAlign='center';
+
+      // ── BIG COUNTDOWN NUMBER ──
+      const numScale=phaseT<0.1?ease(phaseT*10):(phaseT>0.85?ease((1-phaseT)*6.67):1);
+      ctx.globalAlpha=numScale;
+      // Outer glow ring
+      ctx.beginPath();ctx.arc(canvas.width/2,340,155,0,Math.PI*2);
+      const ring=ctx.createRadialGradient(canvas.width/2,340,80,canvas.width/2,340,155);
+      ring.addColorStop(0,'rgba(255,215,0,0.0)');
+      ring.addColorStop(0.7,'rgba(255,215,0,0.15)');
+      ring.addColorStop(1,'rgba(255,215,0,0.4)');
+      ctx.fillStyle=ring;ctx.fill();
+      ctx.strokeStyle='rgba(255,215,0,0.7)';ctx.lineWidth=4;
+      ctx.stroke();
+      // Inner circle
+      ctx.beginPath();ctx.arc(canvas.width/2,340,120,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fill();
+      // The number
+      ctx.font='bold 180px Orbitron,monospace';ctx.fillStyle=GOLD;
+      ctx.shadowColor='rgba(255,215,0,1)';ctx.shadowBlur=60;
+      ctx.fillText(placeNum,canvas.width/2,420);ctx.shadowBlur=0;
+      ctx.globalAlpha=1;
+
+      // "TOP PLACES IN..." header
+      ctx.font='bold 34px Orbitron,monospace';ctx.fillStyle=ACCENT;
+      ctx.fillText('TOP PLACES IN '+c.name.toUpperCase(),canvas.width/2,530);
+
+      // Place name big
+      const nameIn=phaseT>0.08?ease(Math.min((phaseT-0.08)*5,1)):0;
+      ctx.globalAlpha=nameIn;
+      ctx.font='26px Orbitron,monospace';ctx.fillStyle=GOLD;
+      ctx.fillText('PLACE #'+placeNum,canvas.width/2,canvas.height-540);
+      ctx.font='bold 76px Cinzel,Georgia,serif';ctx.fillStyle=WHITE;
+      ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=25;
+      wrapText((place?place.e+' ':'')+((place&&place.n)||c.name),canvas.width/2-450,canvas.height-450,900,90);
+      ctx.shadowBlur=0;
+      ctx.globalAlpha=1;
+
+      // Country badge bottom
+      ctx.font='32px Orbitron,monospace';ctx.fillStyle=GOLD;
+      ctx.fillText('📍 '+c.name.toUpperCase(),canvas.width/2,canvas.height-120);
+      ctx.font='bold 42px Cinzel,Georgia,serif';ctx.fillStyle=WHITE;
+      ctx.fillText('CodeX with Thapa X Globe',canvas.width/2,canvas.height-60);
+
+    // ── PHASE 8: COUNTRY STATS ──
+    } else if(phase===8){
+      drawBg('#050A14','#0F1A30');drawStars();
+      ctx.textAlign='center';
+      ctx.font='bold 60px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
+      ctx.shadowColor='rgba(255,215,0,.4)';ctx.shadowBlur=30;
+      ctx.fillText(c.name,canvas.width/2,110);ctx.shadowBlur=0;
+      ctx.font='28px Orbitron,monospace';ctx.fillStyle=ACCENT;
+      ctx.fillText('COUNTRY FACTS & STATISTICS',canvas.width/2,165);
+      ctx.strokeStyle='rgba(255,215,0,0.25)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(80,188);ctx.lineTo(canvas.width-80,188);ctx.stroke();
       const facts=[
         ['👥','POPULATION',fmt(c.pop)+' people'],
         ['📐','TOTAL AREA',fmt(c.area)+' km²'],
@@ -1134,75 +1313,58 @@ async function generateVideo(){
       ];
       facts.forEach((f,i)=>{
         const col=i%2;const row=Math.floor(i/2);
-        const x=60+col*520;const y=240+row*400;
-        // Card bg
+        const x=55+col*510;const y=220+row*410;
+        const a=phaseT>i*0.07?ease(Math.min((phaseT-i*0.07)*8,1)):0;
+        ctx.globalAlpha=a;
         ctx.fillStyle='rgba(255,255,255,0.04)';
-        roundRect(ctx,x,y,480,360,20);ctx.fill();
+        roundRect(ctx,x,y,480,380,16);ctx.fill();
         ctx.strokeStyle='rgba(255,215,0,0.2)';ctx.lineWidth=1;
-        roundRect(ctx,x,y,480,360,20);ctx.stroke();
-        // Icon
-        ctx.font='60px serif';ctx.textAlign='left';
-        ctx.fillText(f[0],x+20,y+80);
-        // Label
-        ctx.font='24px Orbitron,monospace';ctx.fillStyle='rgba(138,160,192,1)';
+        roundRect(ctx,x,y,480,380,16);ctx.stroke();
+        // ghost number
+        ctx.font='bold 100px Orbitron,monospace';ctx.fillStyle='rgba(255,215,0,0.06)';
+        ctx.textAlign='right';ctx.fillText(i+1,x+460,y+330);
+        ctx.textAlign='left';
+        ctx.font='54px serif';ctx.fillText(f[0],x+20,y+80);
+        ctx.font='22px Orbitron,monospace';ctx.fillStyle='rgba(138,160,192,1)';
         ctx.fillText(f[1],x+20,y+130);
-        // Value
-        ctx.font='bold 36px Rajdhani,sans-serif';ctx.fillStyle=GOLD;
-        const maxW=440;
-        if(ctx.measureText(f[2]).width>maxW){ctx.font='bold 28px Rajdhani,sans-serif';}
-        wrapText(f[2],x+20,y+185,maxW,40);
+        ctx.font='bold 34px Rajdhani,sans-serif';ctx.fillStyle=GOLD;
+        if(ctx.measureText(f[2]).width>440){ctx.font='bold 26px Rajdhani,sans-serif';}
+        wrapText(f[2],x+20,y+185,450,42);
+        ctx.globalAlpha=1;
       });
 
-    } else if(phase>=2&&phase<2+images.length){
-      // ── DESTINATION SLIDES ──
-      const imgIdx=phase-2;
-      const item=images[imgIdx];
-      if(item&&item.img){
-        // Draw photo full bleed
-        const iw=item.img.width,ih=item.img.height;
-        const scale=Math.max(canvas.width/iw,canvas.height/ih);
-        const dw=iw*scale,dh=ih*scale;
-        ctx.drawImage(item.img,(canvas.width-dw)/2,(canvas.height-dh)/2,dw,dh);
-        // Dark overlay
-        const ov=ctx.createLinearGradient(0,0,0,canvas.height);
-        ov.addColorStop(0,'rgba(0,0,0,0.5)');ov.addColorStop(.4,'rgba(0,0,0,0.1)');
-        ov.addColorStop(.7,'rgba(0,0,0,0.3)');ov.addColorStop(1,'rgba(0,0,0,0.85)');
-        ctx.fillStyle=ov;ctx.fillRect(0,0,canvas.width,canvas.height);
-      } else {
-        drawBg('#0A1628','#0F2040');drawStars();
-      }
-      // Destination name
-      ctx.textAlign='center';
-      ctx.font='bold 80px Cinzel,Georgia,serif';
-      ctx.fillStyle=WHITE;ctx.shadowColor='rgba(0,0,0,.8)';ctx.shadowBlur=20;
-      wrapText(item?item.name:c.name,canvas.width/2-400,canvas.height-380,800,90);
-      ctx.shadowBlur=0;
-      ctx.font='36px Orbitron,monospace';ctx.fillStyle=GOLD;
-      ctx.fillText('📍 '+c.name.toUpperCase()+' · TOP DESTINATION',canvas.width/2,canvas.height-200);
-      ctx.font='28px Rajdhani,sans-serif';ctx.fillStyle=ACCENT;
-      ctx.fillText(c.region+' · '+c.sub,canvas.width/2,canvas.height-150);
-      ctx.font='bold 38px Orbitron,monospace';ctx.fillStyle=GOLD;
-      ctx.fillText('CodeX with Thapa X Globe',canvas.width/2,canvas.height-80);
-
+    // ── PHASE 9: OUTRO ──
     } else {
-      // ── OUTRO SLIDE ──
-      drawBg('#050A14','#0A2040');drawStars();
+      drawBg('#020810','#061428');drawStars();
       ctx.textAlign='center';
-      ctx.font=`${Math.floor(160)}px serif`;
-      ctx.fillText(flag(c.cca2),canvas.width/2,480);
+      // Pulsing glow
+      const p=0.8+Math.sin(elapsed/500)*0.2;
+      ctx.beginPath();ctx.arc(canvas.width/2,500,200*p,0,Math.PI*2);
+      const og=ctx.createRadialGradient(canvas.width/2,500,0,canvas.width/2,500,200);
+      og.addColorStop(0,'rgba(255,215,0,0.2)');og.addColorStop(1,'rgba(255,215,0,0)');
+      ctx.fillStyle=og;ctx.fill();
+      ctx.font='160px serif';ctx.fillText(flag(c.cca2),canvas.width/2,480);
       ctx.font='bold 80px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
-      ctx.shadowColor='rgba(255,215,0,.5)';ctx.shadowBlur=40;
+      ctx.shadowColor='rgba(255,215,0,.6)';ctx.shadowBlur=50;
       ctx.fillText(c.name,canvas.width/2,640);ctx.shadowBlur=0;
-      ctx.font='36px Orbitron,monospace';ctx.fillStyle=ACCENT;
-      ctx.fillText('♫ '+((ANTHEMS[c.cca2]&&ANTHEMS[c.cca2].name)||'National Anthem'),canvas.width/2,720);
+      ctx.font='34px Orbitron,monospace';ctx.fillStyle=ACCENT;
+      ctx.fillText('♫ '+((ANTHEMS[c.cca2]&&ANTHEMS[c.cca2].name)||'National Anthem'),canvas.width/2,715);
       ctx.font='28px Rajdhani,sans-serif';ctx.fillStyle='rgba(232,240,255,.7)';
-      ctx.fillText('Subscribe for more country anthems & facts!',canvas.width/2,820);
-      ctx.font='bold 54px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
+      ctx.fillText('Like · Follow · Share for more! 🙏',canvas.width/2,810);
+      // Subscribe CTA box
+      ctx.fillStyle='rgba(255,215,0,0.1)';
+      roundRect(ctx,100,870,880,120,20);ctx.fill();
+      ctx.strokeStyle='rgba(255,215,0,0.4)';ctx.lineWidth=2;
+      roundRect(ctx,100,870,880,120,20);ctx.stroke();
+      ctx.font='bold 38px Orbitron,monospace';ctx.fillStyle=GOLD;
+      ctx.fillText('🔔 SUBSCRIBE FOR MORE',canvas.width/2,945);
+      // Brand
+      ctx.font='bold 52px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
       ctx.shadowBlur=30;ctx.shadowColor='rgba(255,215,0,.5)';
       ctx.fillText('CodeX with Thapa X Globe',canvas.width/2,1620);ctx.shadowBlur=0;
       ctx.font='26px Rajdhani,sans-serif';ctx.fillStyle=WHITE;
-      ctx.fillText('TikTok · YouTube · Instagram · Facebook',canvas.width/2,1710);
-      ctx.font='22px Orbitron,monospace';ctx.fillStyle='rgba(138,160,192,.8)';
+      ctx.fillText('TikTok · YouTube · Instagram · Facebook',canvas.width/2,1700);
+      ctx.font='20px Orbitron,monospace';ctx.fillStyle='rgba(138,160,192,.8)';
       ctx.fillText('© 2026 CodeX with Thapa X Globe — All Rights Reserved',canvas.width/2,1820);
     }
     drawWatermark();
@@ -1343,20 +1505,56 @@ async function loadFFmpeg(){
 }
 
 async function finalizeVideo(c){
-  setProgress(99,'PREPARING DOWNLOAD...');
-  const webmBlob=new Blob(recordedChunks,{type:'video/webm'});
-  lastWebmBlob=webmBlob;
+  setProgress(88,'ENCODING VIDEO...');
+  const rawBlob=new Blob(recordedChunks,{type:recordedChunks[0]?.type||'video/webm'});
+  lastWebmBlob=rawBlob;
   lastCountryName=c.name.replace(/\s+/g,'_');
-  const url=URL.createObjectURL(webmBlob);
+
+  // If browser recorded as mp4 directly → done!
+  if(rawBlob.type.includes('mp4')){
+    deliverDownload(rawBlob,'mp4',c);return;
+  }
+
+  // Otherwise auto-convert WebM → MP4 via ffmpeg.wasm
+  setProgress(90,'AUTO-CONVERTING TO MP4...');
+  try{
+    await new Promise((res,rej)=>{
+      if(window.FFmpeg){res();return;}
+      const s=document.createElement('script');
+      s.src='https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
+      s.onload=res;s.onerror=rej;document.head.appendChild(s);
+    });
+    setProgress(93,'LOADING ENCODER...');
+    const{createFFmpeg,fetchFile}=FFmpeg;
+    const ff=createFFmpeg({log:false});
+    await ff.load();
+    setProgress(95,'CONVERTING TO MP4...');
+    ff.FS('writeFile','in.webm',await fetchFile(rawBlob));
+    await ff.run('-i','in.webm','-c:v','libx264','-c:a','aac','-movflags','+faststart','-preset','ultrafast','-crf','26','out.mp4');
+    const data=ff.FS('readFile','out.mp4');
+    const mp4blob=new Blob([data.buffer],{type:'video/mp4'});
+    deliverDownload(mp4blob,'mp4',c);
+  }catch(e){
+    // ffmpeg failed — deliver WebM with rename tip
+    deliverDownload(rawBlob,'webm',c,true);
+  }
+}
+
+function deliverDownload(blob,ext,c,showTip=false){
+  const url=URL.createObjectURL(blob);
   const dl=document.getElementById('dl-btn');
   dl.href=url;
-  dl.download=c.name.replace(/\s+/g,'_')+'_CodeX_ThapaGlobe.webm';
+  dl.download=c.name.replace(/\s+/g,'_')+'_CodeX_ThapaGlobe.'+ext;
   dl.style.display='inline-flex';
-  // Show MP4 convert button
-  document.getElementById('mp4-btn').style.display='inline-flex';
+  dl.textContent=ext==='mp4'?'⬇ DOWNLOAD MP4':'⬇ DOWNLOAD VIDEO';
+  document.getElementById('mp4-btn').style.display='none';// hide separate button, not needed
   document.getElementById('gen-btn').textContent='🔄 REGENERATE';
   document.getElementById('gen-btn').disabled=false;
-  setProgress(100,'✅ DONE! Download WebM or tap 🎯 Convert to MP4 for phones!');
+  if(ext==='mp4'){
+    setProgress(100,'✅ MP4 READY! Download & post to TikTok/YouTube 🚀');
+  } else {
+    setProgress(100,'✅ Done! '+(showTip?'Rename .webm → .mp4 or open in CapCut':'Video ready'));
+  }
 }
 
 function setProgress(pct,label){
