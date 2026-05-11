@@ -151,10 +151,9 @@ audio#caud{display:none;}
 .vid-title{font-family:‘Cinzel Decorative’,serif;font-size:15px;color:#FFD700;margin-bottom:6px;}
 .vid-note{font-size:13px;color:var(–text2);margin-bottom:18px;line-height:1.7;}
 .vid-note strong{color:#FFD700;}
-/* Canvas container — 9:16 aspect for TikTok */
-#vcwrap{position:relative;width:100%;max-width:340px;margin:0 auto 16px;border-radius:14px;overflow:hidden;border:2px solid rgba(255,215,0,.3);box-shadow:0 0 40px rgba(255,215,0,.1);background:#000;display:none;}
-#vcwrap::before{content:’’;display:block;padding-top:177.78%;}/* 9:16 */
-#vc{position:absolute;inset:0;width:100%;height:100%;}
+/* Canvas container — 9:16 TikTok style, fully visible on mobile */
+#vcwrap{display:none;width:100%;max-width:320px;margin:0 auto 16px;border-radius:14px;overflow:hidden;border:2px solid rgba(255,215,0,.5);box-shadow:0 0 50px rgba(255,215,0,.25),0 0 100px rgba(255,215,0,.1);background:#000;}
+#vc{display:block;width:100%;height:auto;}
 .wm-tl{position:absolute;top:10px;left:10px;font-family:‘Orbitron’,sans-serif;font-size:8px;color:rgba(255,215,0,.95);background:rgba(0,0,0,.55);padding:4px 10px;border-radius:5px;pointer-events:none;backdrop-filter:blur(6px);z-index:10;}
 .wm-br{position:absolute;bottom:10px;right:10px;font-family:‘Orbitron’,sans-serif;font-size:7px;color:rgba(255,215,0,.85);background:rgba(0,0,0,.55);padding:3px 8px;border-radius:5px;pointer-events:none;backdrop-filter:blur(6px);z-index:10;}
 /* progress */
@@ -207,7 +206,7 @@ footer span{color:#FFD700;}
 <div id="app">
   <header>
     <div class="hbrand"><div class="hg">🌐</div>
-      <div class="ht">CodeX with Thapa X Globe<span>World Anthem Archive</span></div>
+      <div class="ht">CodeX with Thapa X Globe</div>
     </div>
     <div class="hright">
       <input type="text" id="srch" placeholder="🔍 Search country..." oninput="filterC()"/>
@@ -416,7 +415,7 @@ const PRIDE={
 
 // ── PLACES ──
 const PLACES={
-  NP:[{q:'Everest Base Camp Nepal trek',n:'Everest Base Camp',e:'🏔️'},{q:'Kathmandu Durbar Square Nepal',n:'Kathmandu',e:'🛕'},{q:'Pokhara lake Nepal mountains',n:'Pokhara',e:'🏞️'},{q:'Chitwan National Park Nepal rhino',n:'Chitwan Park',e:'🦏'},{q:'Lumbini Nepal Buddha birthplace',n:'Lumbini',e:'☸️'},{q:'Annapurna Circuit Nepal hiking',n:'Annapurna',e:'⛰️'}],
+  NP:[{q:'Mount Everest base camp Himalaya Nepal',n:'Everest Base Camp',e:'🏔️'},{q:'Kathmandu Boudhanath stupa Nepal',n:'Boudhanath Stupa',e:'🛕'},{q:'Pokhara Phewa lake Nepal mountain reflection',n:'Pokhara Lake',e:'🏞️'},{q:'Chitwan jungle Nepal elephant',n:'Chitwan Park',e:'🦏'},{q:'Lumbini Buddhist temple Nepal birthplace Buddha',n:'Lumbini Temple',e:'☸️'},{q:'Annapurna mountain range Nepal trekking',n:'Annapurna Range',e:'⛰️'}],
   US:[{q:'Grand Canyon Arizona sunset',n:'Grand Canyon',e:'🏜️'},{q:'New York Times Square night',n:'Times Square',e:'🗽'},{q:'Yellowstone geyser national park',n:'Yellowstone',e:'🌋'},{q:'Hawaii beach volcanic island',n:'Hawaii',e:'🌺'},{q:'Yosemite Valley waterfall California',n:'Yosemite',e:'🌊'},{q:'Las Vegas strip night Nevada',n:'Las Vegas',e:'🎰'}],
   GB:[{q:'Big Ben Westminster London',n:'Big Ben',e:'🕰️'},{q:'Stonehenge England ancient',n:'Stonehenge',e:'🪨'},{q:'Scottish Highlands misty mountains',n:'Scottish Highlands',e:'🏔️'},{q:'Buckingham Palace London guard',n:'Buckingham Palace',e:'👑'},{q:'Tower of London medieval',n:'Tower of London',e:'🏰'},{q:'Lake District England landscape',n:'Lake District',e:'🌿'}],
   FR:[{q:'Eiffel Tower Paris night lights',n:'Eiffel Tower',e:'🗼'},{q:'Mont Saint-Michel France island',n:'Mont Saint-Michel',e:'🏰'},{q:'French Riviera Nice coast blue sea',n:'French Riviera',e:'🌊'},{q:'Palace of Versailles gardens',n:'Palace of Versailles',e:'👑'},{q:'Provence lavender fields purple',n:'Provence',e:'💜'},{q:'Louvre Museum Paris art',n:'Louvre Museum',e:'🎨'}],
@@ -803,15 +802,26 @@ async function fetchPhoto(q,n,e='📍'){
 // ── VIDEO PLAYER (plays IN browser, screen record!) ──
 function startVideo(){
   if(!curC)return;
+  const canvas=document.getElementById('vc');
+  canvas.width=1080;canvas.height=1920;
+  const ctx=canvas.getContext('2d');
+  // Draw loading screen immediately so user sees the canvas
+  const g=ctx.createLinearGradient(0,0,0,1920);g.addColorStop(0,'#020810');g.addColorStop(1,'#061428');
+  ctx.fillStyle=g;ctx.fillRect(0,0,1080,1920);
+  ctx.font='180px serif';ctx.textAlign='center';ctx.fillText(flag(curC.cca2),540,700);
+  ctx.font='bold 80px Cinzel,Georgia,serif';ctx.fillStyle='#FFD700';ctx.shadowColor='#FFD700';ctx.shadowBlur=40;
+  ctx.fillText(curC.name,540,860);ctx.shadowBlur=0;
+  ctx.font='36px Orbitron,monospace';ctx.fillStyle='#00E5FF';ctx.fillText('LOADING VIDEO...',540,940);
+  // Spinner dots
+  for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(540+(i-3.5)*60,1020,12,0,Math.PI*2);ctx.fillStyle=`rgba(255,215,0,${.3+i*.08})`;ctx.fill();}
   document.getElementById('vcwrap').style.display='block';
+  document.getElementById('vcwrap').scrollIntoView({behavior:'smooth',block:'center'});
   document.getElementById('gprog').style.display='block';
   document.getElementById('gbtn').disabled=true;
   document.getElementById('gbtn').textContent='⏳ LOADING...';
   document.getElementById('stopbtn').style.display='inline-flex';
-  // Start anthem
   const aud=document.getElementById('caud');
-  aud.currentTime=0;
-  aud.play().catch(()=>{});
+  aud.currentTime=0;aud.play().catch(()=>{});
   playVideoAnimation();
 }
 function stopVideo(){
@@ -826,8 +836,14 @@ async function playVideoAnimation(){
   const c=curC;
   const wrap=document.getElementById('vcwrap');
   const canvas=document.getElementById('vc');
-  // High resolution: 1080x1920
-  canvas.width=1080;canvas.height=1920;
+  // 9:16 portrait — perfect for TikTok/Reels/Shorts
+  canvas.width=1080;
+  canvas.height=1920;
+  // Make it visible BEFORE drawing so user sees it right away
+  wrap.style.display='block';
+  document.getElementById('gbtn').textContent='🎬 PLAYING...';
+  // Scroll video into view on mobile
+  wrap.scrollIntoView({behavior:'smooth',block:'center'});
   const ctx=canvas.getContext('2d');
 
   setProg(5,'LOADING IMAGES...');
