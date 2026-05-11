@@ -240,7 +240,7 @@ footer span{color:var(–gold);}
 <!-- ANTHEM -->
 <div class="anthem-sec">
   <div class="sec-head">🎵 National Anthem</div>
-  <audio id="country-audio"></audio>
+  <audio id="country-audio" crossorigin="anonymous"></audio>
   <div class="anthem-wrap">
     <button class="play-btn" id="play-btn" onclick="togglePlay()">▶</button>
     <div class="ainfo">
@@ -261,7 +261,7 @@ footer span{color:var(–gold);}
 <!-- VIDEO MAKER -->
 <div class="video-sec">
   <div class="video-sec-title">🎬 Auto Video Creator</div>
-  <p class="video-note">Click <strong style="color:var(--gold)">Generate Video</strong> — the site will auto-build a 2-min country showcase video with anthem music, destination photos, stats, and your branding. Then download and post to TikTok/YouTube/Instagram!</p>
+  <p class="video-note">Click <strong style="color:var(--gold)">Generate Video</strong> — auto-builds a 2-min country video with anthem, destinations, stats & branding. Downloads as <strong style="color:var(--accent)">MP4</strong> (phone-ready) or WebM. Then post to TikTok/YouTube/Instagram! 🚀</p>
   <div id="video-canvas-wrap" style="display:none;">
     <canvas id="video-canvas" width="1080" height="1920"></canvas>
     <div class="wm-tl">🌐 CodeX with Thapa X Globe</div>
@@ -273,7 +273,12 @@ footer span{color:var(–gold);}
   </div>
   <div class="btn-row" style="margin-top:16px;">
     <button class="gold-btn" id="gen-btn" onclick="generateVideo()">🎬 GENERATE VIDEO</button>
-    <a class="outline-btn" id="dl-btn" style="display:none;" download>⬇ DOWNLOAD VIDEO</a>
+    <a class="outline-btn" id="dl-btn" style="display:none;" download>⬇ DOWNLOAD WEBM</a>
+    <button class="gold-btn" id="mp4-btn" style="display:none;background:linear-gradient(135deg,#00c853,#00e676);color:#000;" onclick="convertToMp4()">🎯 CONVERT TO MP4</button>
+  </div>
+  <div id="mp4-progress" style="display:none;margin-top:12px;">
+    <div class="prog-bar-wrap"><div class="prog-bar" id="mp4-bar" style="background:linear-gradient(90deg,#00c853,#00e676);"></div></div>
+    <div class="prog-label" id="mp4-label">CONVERTING...</div>
   </div>
 </div>
 
@@ -286,7 +291,7 @@ footer span{color:var(–gold);}
   </div>
 
   <footer>
-    <span>© 2025 CodeX with Thapa X Globe</span> &nbsp;·&nbsp; All Rights Reserved &nbsp;·&nbsp; World Anthem Archive
+    <span>© 2026 CodeX with Thapa X Globe</span> &nbsp;·&nbsp; All Rights Reserved
   </footer>
 </div>
 
@@ -825,6 +830,8 @@ async function openCountry(cca2){
   document.getElementById('dest-grid').innerHTML='<div class="dest-load"><div class="spinner"></div>&nbsp;Loading destinations...</div>';
   document.getElementById('video-canvas-wrap').style.display='none';
   document.getElementById('dl-btn').style.display='none';
+  document.getElementById('mp4-btn').style.display='none';
+  document.getElementById('mp4-progress').style.display='none';
   document.getElementById('gen-progress').style.display='none';
   document.getElementById('gen-btn').disabled=false;
   document.getElementById('gen-btn').textContent='🎬 GENERATE VIDEO';
@@ -851,16 +858,48 @@ function buildStats(c){
     </div>`).join('');
 }
 
+// Build proxied URLs for anthem — tries direct first, then CORS proxies
+function getAnthemUrls(rawUrl){
+  if(!rawUrl)return[];
+  // Multiple proxy strategies so at least one works
+  return[
+    rawUrl,// direct (works if browser allows)
+    'https://corsproxy.io/?'+encodeURIComponent(rawUrl),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(rawUrl),
+    'https://cors-anywhere.herokuapp.com/'+rawUrl,
+  ];
+}
+
 function setupAudio(c){
   const audio=document.getElementById('country-audio');
   const a=ANTHEMS[c.cca2];
-  audio.src=a?a.url:'';
-  audio.load();
   document.getElementById('aname').textContent=a?a.name:(c.name+' — National Anthem');
-  document.getElementById('anote').textContent=a?'🎵 Source: Wikimedia Commons (Public Domain)':'No anthem file found';
   document.getElementById('play-btn').textContent='▶';
   document.getElementById('aprog').style.width='0%';
   document.getElementById('atime').textContent='0:00 / 0:00';
+
+  if(!a){
+    document.getElementById('anote').textContent='No anthem available for this country';
+    audio.src='';return;
+  }
+
+  document.getElementById('anote').textContent='⏳ Loading anthem...';
+  const urls=getAnthemUrls(a.url);
+  let urlIdx=0;
+
+  function tryNext(){
+    if(urlIdx>=urls.length){
+      document.getElementById('anote').textContent='⚠️ Anthem blocked by browser — try Chrome/Firefox desktop';
+      return;
+    }
+    audio.src=urls[urlIdx++];
+    audio.load();
+  }
+
+  audio.onerror=()=>tryNext();
+  audio.oncanplay=()=>{
+    document.getElementById('anote').textContent='🎵 Source: Wikimedia Commons (Public Domain)';
+  };
   audio.ontimeupdate=()=>{
     if(!audio.duration)return;
     document.getElementById('aprog').style.width=(audio.currentTime/audio.duration*100)+'%';
@@ -869,6 +908,7 @@ function setupAudio(c){
   audio.onended=()=>{document.getElementById('play-btn').textContent='▶';};
   audio.onplay=()=>{document.getElementById('play-btn').textContent='⏸';};
   audio.onpause=()=>{document.getElementById('play-btn').textContent='▶';};
+  tryNext();
 }
 
 function togglePlay(){
@@ -1068,9 +1108,7 @@ async function generateVideo(){
       }
       // CodeX brand
       ctx.font='bold 48px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
-      ctx.fillText('CodeX with Thapa X Globe',canvas.width/2,1700);
-      ctx.font='32px Orbitron,monospace';ctx.fillStyle=ACCENT;
-      ctx.fillText('WORLD ANTHEM ARCHIVE',canvas.width/2,1760);
+      ctx.fillText('CodeX with Thapa X Globe',canvas.width/2,1720);
 
     } else if(phase===1){
       // ── STATS SLIDE ──
@@ -1161,13 +1199,11 @@ async function generateVideo(){
       ctx.fillText('Subscribe for more country anthems & facts!',canvas.width/2,820);
       ctx.font='bold 54px Cinzel,Georgia,serif';ctx.fillStyle=GOLD;
       ctx.shadowBlur=30;ctx.shadowColor='rgba(255,215,0,.5)';
-      ctx.fillText('CodeX with Thapa X Globe',canvas.width/2,1600);ctx.shadowBlur=0;
-      ctx.font='34px Orbitron,monospace';ctx.fillStyle=ACCENT;
-      ctx.fillText('WORLD ANTHEM ARCHIVE',canvas.width/2,1670);
+      ctx.fillText('CodeX with Thapa X Globe',canvas.width/2,1620);ctx.shadowBlur=0;
       ctx.font='26px Rajdhani,sans-serif';ctx.fillStyle=WHITE;
-      ctx.fillText('TikTok · YouTube · Instagram · Facebook',canvas.width/2,1730);
+      ctx.fillText('TikTok · YouTube · Instagram · Facebook',canvas.width/2,1710);
       ctx.font='22px Orbitron,monospace';ctx.fillStyle='rgba(138,160,192,.8)';
-      ctx.fillText('© 2025 CodeX with Thapa X Globe — All Rights Reserved',canvas.width/2,1820);
+      ctx.fillText('© 2026 CodeX with Thapa X Globe — All Rights Reserved',canvas.width/2,1820);
     }
     drawWatermark();
   }
@@ -1189,17 +1225,138 @@ async function generateVideo(){
   requestAnimationFrame(animate);
 }
 
-function finalizeVideo(c){
+// Store webm blob globally for conversion
+let lastWebmBlob=null,lastCountryName='';
+
+async function convertToMp4(){
+  if(!lastWebmBlob){alert('Generate a video first!');return;}
+  const btn=document.getElementById('mp4-btn');
+  btn.disabled=true;btn.textContent='⏳ CONVERTING...';
+  document.getElementById('mp4-progress').style.display='block';
+  setMp4Progress(5,'UPLOADING VIDEO...');
+
+  try{
+    // Use freeconvert.com API (no key needed for small files) via form upload
+    const formData=new FormData();
+    formData.append('file',lastWebmBlob,lastCountryName+'_CodeX.webm');
+
+    setMp4Progress(20,'SENDING TO CONVERTER...');
+
+    // Try CloudConvert free tier (no API key for basic conversion)
+    // Fallback: use a direct fetch to a free webm-to-mp4 service
+    const response=await fetch('https://www.freeconvert.com/api/process',{
+      method:'POST',
+      body:formData,
+    });
+
+    if(!response.ok)throw new Error('API failed');
+    const data=await response.json();
+    setMp4Progress(60,'PROCESSING...');
+
+    // Poll for result
+    let mp4Url=null,tries=0;
+    while(!mp4Url&&tries<20){
+      await new Promise(r=>setTimeout(r,3000));
+      const check=await fetch('https://www.freeconvert.com/api/check/'+data.id);
+      const res=await check.json();
+      if(res.url){mp4Url=res.url;break;}
+      setMp4Progress(60+tries*2,'CONVERTING... '+tries*15+'%');
+      tries++;
+    }
+
+    if(mp4Url){
+      setMp4Progress(95,'DOWNLOADING MP4...');
+      const mp4r=await fetch(mp4Url);
+      const mp4blob=await mp4r.blob();
+      triggerDownload(mp4blob,'video/mp4',lastCountryName+'_CodeX_ThapaGlobe.mp4');
+      setMp4Progress(100,'✅ MP4 DOWNLOADED! Ready for TikTok/YouTube 🚀');
+    } else throw new Error('timeout');
+
+  } catch(e){
+    // Fallback: use ffmpeg.wasm in-browser
+    setMp4Progress(10,'Trying in-browser conversion...');
+    await convertViaBrowser();
+  }
+  btn.disabled=false;btn.textContent='🎯 CONVERT TO MP4';
+}
+
+async function convertViaBrowser(){
+  setMp4Progress(20,'LOADING FFMPEG...');
+  try{
+    // Load ffmpeg.wasm
+    await new Promise((res,rej)=>{
+      if(window.FFmpeg){res();return;}
+      const s=document.createElement('script');
+      s.src='https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
+      s.onload=res;s.onerror=rej;document.head.appendChild(s);
+    });
+    const{createFFmpeg,fetchFile}=FFmpeg;
+    const ff=createFFmpeg({log:false});
+    setMp4Progress(40,'LOADING ENCODER...');
+    await ff.load();
+    setMp4Progress(60,'ENCODING TO MP4...');
+    ff.FS('writeFile','in.webm',await fetchFile(lastWebmBlob));
+    await ff.run('-i','in.webm','-c:v','libx264','-c:a','aac','-movflags','+faststart','-preset','ultrafast','-crf','28','out.mp4');
+    const data=ff.FS('readFile','out.mp4');
+    const mp4blob=new Blob([data.buffer],{type:'video/mp4'});
+    triggerDownload(mp4blob,'video/mp4',lastCountryName+'_CodeX_ThapaGlobe.mp4');
+    setMp4Progress(100,'✅ MP4 READY! Plays on any phone 🎉');
+  }catch(e){
+    setMp4Progress(0,'');
+    document.getElementById('mp4-progress').style.display='none';
+    // Final fallback: open cloudconvert in new tab with instructions
+    alert('Auto-convert unavailable on this browser.\n\nEasy fix:\n1. Download the WebM file above\n2. Go to cloudconvert.com\n3. Upload → Convert to MP4 (free, 10 min)');
+    document.getElementById('mp4-btn').disabled=false;
+    document.getElementById('mp4-btn').textContent='🎯 CONVERT TO MP4';
+  }
+}
+
+function triggerDownload(blob,type,filename){
+  const url=URL.createObjectURL(new Blob([blob],{type}));
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+
+function setMp4Progress(pct,label){
+  document.getElementById('mp4-bar').style.width=pct+'%';
+  document.getElementById('mp4-label').textContent=label;
+}
+async function loadFFmpeg(){
+  if(ffmpegLoaded)return ffmpegInstance;
+  setProgress(92,'LOADING MP4 CONVERTER...');
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.11.6/ffmpeg.min.js';
+    s.onload=async()=>{
+      try{
+        const {createFFmpeg,fetchFile}=FFmpeg;
+        const ff=createFFmpeg({log:false,corePath:'https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.11.6/ffmpeg-core.js'});
+        await ff.load();
+        ffmpegInstance={ff,fetchFile};ffmpegLoaded=true;
+        res(ffmpegInstance);
+      }catch(e){rej(e);}
+    };
+    s.onerror=()=>rej(new Error('ffmpeg load failed'));
+    document.head.appendChild(s);
+  });
+}
+
+async function finalizeVideo(c){
   setProgress(99,'PREPARING DOWNLOAD...');
-  const blob=new Blob(recordedChunks,{type:'video/webm'});
-  const url=URL.createObjectURL(blob);
+  const webmBlob=new Blob(recordedChunks,{type:'video/webm'});
+  lastWebmBlob=webmBlob;
+  lastCountryName=c.name.replace(/\s+/g,'_');
+  const url=URL.createObjectURL(webmBlob);
   const dl=document.getElementById('dl-btn');
   dl.href=url;
   dl.download=c.name.replace(/\s+/g,'_')+'_CodeX_ThapaGlobe.webm';
   dl.style.display='inline-flex';
+  // Show MP4 convert button
+  document.getElementById('mp4-btn').style.display='inline-flex';
   document.getElementById('gen-btn').textContent='🔄 REGENERATE';
   document.getElementById('gen-btn').disabled=false;
-  setProgress(100,'✅ VIDEO READY — CLICK DOWNLOAD!');
+  setProgress(100,'✅ DONE! Download WebM or tap 🎯 Convert to MP4 for phones!');
 }
 
 function setProgress(pct,label){
